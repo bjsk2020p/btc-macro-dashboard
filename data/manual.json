@@ -1,0 +1,4 @@
+{
+  "_help": "Manual inputs shown on every device. Set mvrv.value (MVRV Z-score, number) and mvrv.date (YYYY-MM-DD, the day you read it), then commit and push. Leave value null when unknown: the dashboard never uses a default.",
+  "mvrv": { "value": null, "date": null, "source": "https://www.bitcoinmagazinepro.com/charts/mvrv-zscore/" }
+}

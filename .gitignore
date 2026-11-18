@@ -1,0 +1,30 @@
+# Secrets / credentials
+.env
+.env.*
+*.pem
+*.key
+credentials*.json
+secrets*
+
+# Caches, logs, tool output
+.playwright-mcp/
+__pycache__/
+node_modules/
+*.log
+.cache/
+
+# OS / editor noise
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Note: archive/ and Releases/ are intentionally tracked so old dashboards stay recoverable.
+# .remember/ ignores itself via its own .gitignore.
+
+# Local server runtime state (logs, port file, last-good data cache) — regenerated automatically
+.runtime/
+
+# Snapshot data (python serve.py --snapshot data) is deployed by the workflow, never committed.
+# data/manual.json is the shared manual input and IS tracked.
+data/*
+!data/manual.json

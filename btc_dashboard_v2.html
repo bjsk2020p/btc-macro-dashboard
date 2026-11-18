@@ -1,0 +1,2509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTC Macro Dashboard v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f8f9fb;color:#0f1117;font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+.wrap{max-width:1200px;margin:0 auto;padding:2rem 1.5rem 3rem}
+/* Header */
+.header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;border-bottom:1px solid #e5e7eb;padding-bottom:1.25rem}
+.logo-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.btc-c{width:34px;height:34px;background:#f7931a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:#fff}
+.ht{font-size:20px;font-weight:700;letter-spacing:-0.02em}.ht span{color:#f7931a}
+.hs{font-size:11px;color:#9ca3af;font-family:'Space Mono',monospace;letter-spacing:.06em;margin-top:2px}
+.hdr{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.live-pill{display:inline-flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:#059669;background:#f0fdf4;border:1px solid #bbf7d0;padding:4px 10px;border-radius:99px}
+.live-dot{width:6px;height:6px;background:#10b981;border-radius:50%;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.refresh-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#f7931a;color:#fff;border:none;border-radius:8px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.refresh-btn:hover{opacity:.85}
+.refresh-btn:disabled{opacity:.5;cursor:not-allowed}
+.lu{font-size:10px;color:#9ca3af;font-family:'Space Mono',monospace}
+/* Hero */
+.hero{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.hcard{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px;position:relative;overflow:hidden}
+.hcard::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.hc1::after{background:#f7931a}.hc2::after{background:#d97706}.hc3::after{background:#059669}.hc4::after{background:#3b82f6}
+.hc-lbl{font-size:10px;font-family:'Space Mono',monospace;color:#9ca3af;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.hc-v{font-size:22px;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:-0.02em;color:#0f1117}
+.hc-sm{font-size:16px;font-weight:700;color:#0f1117}
+.hc-sub{font-size:11px;color:#6b7280;margin-top:5px;line-height:1.4}
+/* Score bar */
+.score-bar-wrap{margin-top:8px}
+.score-bar-bg{height:5px;background:#f3f4f6;border-radius:99px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#ef4444 0%,#f59e0b 40%,#10b981 100%);transition:width .6s ease}
+/* Layer */
+.layer{margin-bottom:2rem}
+.lhdr{display:flex;align-items:center;gap:12px;margin-bottom:1rem;flex-wrap:wrap}
+.lbadge{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.l1b{background:#3b82f6}.l2b{background:#d97706}.l3b{background:#059669}
+.lt{font-size:15px;font-weight:700;letter-spacing:-0.01em}
+.lp{font-size:10px;color:#6b7280;font-family:'Space Mono',monospace;letter-spacing:.04em;margin-top:2px}
+.lv{margin-left:auto;padding:4px 12px;border-radius:99px;font-size:10px;font-family:'Space Mono',monospace;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.bull-v{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+.bear-v{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+.neut-v{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+/* Grids */
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.g2>*,.g3>*,.g4>*{min-width:0}
+/* Ind block */
+.iblock{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .2s}
+.iblock:hover{border-color:#d1d5db;transform:translateY(-1px)}
+.iblock.bull{border-left:3px solid #10b981}
+.iblock.bear{border-left:3px solid #ef4444}
+.iblock.neut{border-left:3px solid #f59e0b}
+.ib-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.ibt{font-size:12.5px;font-weight:700;color:#0f1117}
+.ibs{font-size:9.5px;color:#9ca3af;font-family:'Space Mono',monospace;letter-spacing:.04em;margin-top:1px}
+.badge{padding:2px 8px;border-radius:99px;font-size:9px;font-family:'Space Mono',monospace;font-weight:700;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0;white-space:nowrap}
+.bull-b{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+.bear-b{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+.neut-b{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+.ib-vr{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.ib-val{font-size:18px;font-weight:700;font-family:'Space Mono',monospace;color:#0f1117;transition:color .3s}
+.ib-val.loading{color:#d1d5db}
+.ib-dlt{font-size:11px;font-family:'Space Mono',monospace}
+.chart-box{height:80px;position:relative;margin:6px 0}
+.chart-box canvas{display:block}
+.ib-logic{font-size:10.5px;color:#6b7280;line-height:1.5;padding-top:7px;border-top:1px solid #f3f4f6}
+.ib-logic strong{color:#374151;font-weight:600}
+/* Input row for live editing */
+.input-row{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:6px;border-top:1px solid #f3f4f6}
+.input-row label{font-size:10px;color:#9ca3af;font-family:'Space Mono',monospace;letter-spacing:.05em;flex-shrink:0}
+.input-row input{flex:1;min-width:0;padding:4px 8px;font-size:12px;font-family:'Space Mono',monospace;border:1px solid #e5e7eb;border-radius:6px;background:#f9fafb;color:#0f1117;outline:none;transition:border-color .2s}
+.input-row input:focus{border-color:#f7931a}
+.upd-btn{padding:3px 8px;font-size:10px;font-family:'Space Mono',monospace;font-weight:700;border:none;border-radius:5px;background:#f7931a;color:#fff;cursor:pointer;flex-shrink:0}
+.upd-btn:hover{opacity:.85}
+/* Layer 1 history table */
+.l1h{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.l1h-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.l1h-t{font-size:13px;font-weight:700;color:#0f1117}
+.l1h-s{font-size:10px;color:#6b7280;font-family:'Space Mono',monospace;letter-spacing:.04em;margin-top:2px}
+.l1h-legend{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.l1h-rules{margin-top:8px;font-size:11px;color:#4b5563}
+.l1h-rules summary{cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#374151;letter-spacing:.04em;padding:2px 4px;border-radius:4px;width:max-content}
+.l1h-rules summary:hover{color:#0f1117;background:#f3f4f6}
+.l1h-rules summary:focus-visible{outline:2px solid #c2410c;outline-offset:2px}
+.l1h-rules ul{margin:6px 0 0 18px;line-height:1.6}
+.l1h-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e5e7eb;border-radius:8px;margin-top:10px}
+.l1h table{width:100%;border-collapse:separate;border-spacing:0;min-width:900px;font-size:12px;color:#0f1117}
+.l1h th{background:#f9fafb;border-bottom:1px solid #e5e7eb;padding:0;white-space:nowrap;text-align:right}
+.l1h td{padding:8px 10px;border-bottom:1px solid #f3f4f6;text-align:right;white-space:nowrap;font-family:'Space Mono',monospace;background:#fff;transition:background .15s}
+.l1h th:first-child,.l1h td:first-child{text-align:left;position:sticky;left:0;z-index:1}
+.l1h th:first-child{z-index:2}
+.l1h td:first-child{font-family:'Inter',sans-serif;font-weight:600;border-right:1px solid #f3f4f6}
+.l1h tbody tr:last-child td{border-bottom:none}
+.l1h tbody tr:hover td{background:#f8fafc}
+.l1h tr.cur td{background:#fff7ed;border-top:2px solid #f7931a;font-weight:700}
+.l1h tr.cur:hover td{background:#ffedd5}
+.l1h tr.cur td:first-child{color:#9a3412}
+/* Sort buttons — default / hover / focus / active(sorted) / pressed */
+.l1h-sort{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;gap:4px;width:100%;padding:8px 10px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#4b5563;background:transparent;cursor:pointer}
+.l1h th:first-child .l1h-sort{justify-content:flex-start}
+.l1h-sort:hover{background:#f3f4f6;color:#0f1117}
+.l1h-sort:focus-visible{outline:2px solid #c2410c;outline-offset:-2px}
+.l1h-sort[aria-pressed="true"]{background:#fff7ed;color:#9a3412}
+.l1h-sort:active{background:#ffedd5;color:#7c2d12}
+.l1h-sort .arr{font-size:9px;color:inherit}
+/* Value badges (not uppercase so numbers read naturally) */
+.vb{display:inline-block;padding:2px 8px;border-radius:99px;border:1px solid;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;white-space:nowrap}
+.vb.bull{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
+.vb.bear{background:#fef2f2;color:#991b1b;border-color:#fecaca}
+.vb.neut{background:#fffbeb;color:#92400e;border-color:#fde68a}
+.vb.na{background:#f3f4f6;color:#4b5563;border-color:#e5e7eb}
+.vb .q{font-weight:400;opacity:.9}
+.vb.sig{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;padding:3px 10px}
+.vb.sig .cnt{text-transform:none;font-weight:400;margin-left:4px}
+.l1h-foot{font-size:10px;color:#6b7280;margin-top:8px;line-height:1.5}
+/* Layer 1 data states (contrast ≥4.5:1 for all text) */
+.na-v{background:#f3f4f6;color:#374151;border:1px solid #e5e7eb}
+.na-b{background:#f3f4f6;color:#374151;border:1px solid #e5e7eb}
+.iblock.nodata{border-left:3px solid #d1d5db}
+.ib-dlt{color:#4b5563}
+.l1h-s.err{color:#b91c1c}
+.l1h tbody th{text-align:left;position:sticky;left:0;z-index:1;background:#fff;padding:8px 10px;border-bottom:1px solid #f3f4f6;border-right:1px solid #f3f4f6;font-weight:600;white-space:nowrap;font-size:12px;transition:background .15s}
+.l1h tbody tr:hover th{background:#f8fafc}
+.l1h tr.cur th{background:#fff7ed;border-top:2px solid #f7931a;color:#9a3412;font-weight:700}
+.l1h tr.cur:hover th{background:#ffedd5}
+.l1h tbody tr:last-child th{border-bottom:none}
+.l1h .od{display:block;font-size:9.5px;font-weight:400;color:#4b5563;margin-top:3px;font-family:'Space Mono',monospace}
+button.vb{font-family:'Space Mono',monospace;cursor:pointer;line-height:1.4}
+button.vb:hover{border-color:currentColor}
+button.vb:focus-visible{outline:2px solid #c2410c;outline-offset:1px}
+button.vb[aria-pressed="true"]{box-shadow:0 0 0 2px #0f1117}
+button.vb:active{filter:brightness(.96)}
+.vb.pend{background:#eff6ff;color:#1e40af;border-color:#bfdbfe;font-weight:400}
+.vb.na{font-weight:400}
+.vb.plain{background:transparent;color:#0f1117;border-color:transparent}
+.vb.plain:hover{border-color:#d1d5db}
+.vb.stale{border-style:dashed}
+.l1h-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.chip{font-family:'Space Mono',monospace;font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid;text-decoration:none;white-space:nowrap}
+.chip:hover{text-decoration:underline}
+.chip:focus-visible{outline:2px solid #c2410c;outline-offset:1px}
+.chip.latest{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
+.chip.cached{background:#eff6ff;color:#1e40af;border-color:#bfdbfe}
+.chip.stale{background:#fffbeb;color:#92400e;border-color:#fde68a}
+.chip.unavailable{background:#fef2f2;color:#991b1b;border-color:#fecaca}
+.l1h-src{margin-top:10px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;font-size:11.5px;color:#1f2937;line-height:1.55}
+.l1h-src p{margin:6px 0}
+.l1h-src a,.l1h-foot a{color:#1d4ed8}
+.l1h-src a:focus-visible,.l1h-foot a:focus-visible{outline:2px solid #c2410c;outline-offset:1px}
+.src-hd{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.src-close{all:unset;cursor:pointer;padding:2px 8px;border-radius:4px;color:#374151;font-size:13px}
+.src-close:hover{background:#e5e7eb;color:#0f1117}
+.src-close:focus-visible{outline:2px solid #c2410c}
+.src-series{margin:6px 0;padding:6px 8px;background:#fff;border:1px solid #f3f4f6;border-radius:6px;font-family:'Space Mono',monospace;font-size:10.5px;overflow-wrap:anywhere}
+.src-note{color:#4b5563;font-size:10.5px}
+.src-err{color:#b91c1c}
+.l1h-foot{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.l1h-clear{padding:4px 10px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;border:1px solid #fdba74;border-radius:6px;background:#fff;color:#9a3412;cursor:pointer}
+.l1h-clear:hover{background:#fff7ed;color:#7c2d12}
+.l1h-clear:focus-visible{outline:2px solid #c2410c;outline-offset:1px}
+.l1h-clear:active{background:#ffedd5}
+/* compact cells so all 9 columns fit the 1200px layout */
+.l1h td{padding:7px 5px}
+.l1h tbody th{padding:7px 8px}
+.l1h .vb{padding:2px 6px}
+.l1h-sort{padding:8px 5px}
+.l1h td .vb.pend,.l1h td .vb.na{white-space:normal;max-width:88px;line-height:1.25}
+.l1h .vb.sig{white-space:normal;max-width:120px}
+.l1h .od{white-space:normal;max-width:96px;margin-left:auto}
+.l1h tbody th .od{margin-left:0}
+/* Source/status lines, file notice, chart states */
+.file-notice{background:#fef2f2;border:1px solid #fecaca;color:#7f1d1d;border-radius:10px;padding:12px 14px;margin-bottom:1rem;font-size:12.5px;line-height:1.55}
+.file-notice code{background:#fff;border:1px solid #fecaca;border-radius:4px;padding:0 4px;font-size:11.5px;color:#7f1d1d}
+.file-notice a{color:#1d4ed8;font-weight:600}
+.file-notice a:focus-visible{outline:2px solid #c2410c;outline-offset:2px}
+.ib-meta{font-size:9.5px;font-family:'Space Mono',monospace;color:#4b5563;margin:2px 0 4px;line-height:1.4;overflow-wrap:anywhere;cursor:help}
+.ib-meta::before{content:'●';margin-right:4px;font-size:8px;vertical-align:1px;color:#9ca3af}
+.ib-meta.st-live::before,.ib-meta.st-latest::before{color:#059669}
+.ib-meta.st-cached::before{color:#2563eb}
+.ib-meta.st-snapshot::before{color:#0e7490}
+.ib-meta.st-stale::before{color:#d97706}
+.ib-meta.st-unavailable::before{color:#dc2626}
+.ib-meta.st-unavailable,.ib-meta.st-stale{color:#7f1d1d}
+.ib-meta.st-manual::before{color:#7c3aed}
+.hc-meta{margin-top:4px}
+.chart-note{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;font-family:'Space Mono',monospace;color:#4b5563;background:rgba(255,255,255,.85);padding:4px;pointer-events:none}
+.chart-note[hidden]{display:none}
+.chart-empty{min-height:80px;margin:6px 0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;font-family:'Space Mono',monospace;color:#4b5563;background:#f9fafb;border:1px dashed #e5e7eb;border-radius:8px;padding:6px}
+.chart-empty a{color:#1d4ed8}
+.live-pill.partial{color:#92400e;background:#fffbeb;border-color:#fde68a}
+.live-pill.partial .live-dot{background:#d97706}
+/* Info tabs (Overview · Help · References). Text contrast ≥ 4.5:1 in every state. */
+.info-tabs{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin-bottom:1.5rem}
+.info-tablist{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid #e5e7eb}
+.info-tab{all:unset;box-sizing:border-box;cursor:pointer;padding:10px 14px;margin-bottom:-1px;border-bottom:3px solid transparent;border-radius:6px 6px 0 0;
+  font-family:'Space Mono',monospace;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#4b5563;background:transparent;transition:background .15s,color .15s}
+.info-tab:hover{color:#111827;background:#f3f4f6}
+.info-tab:focus-visible{outline:2px solid #c2410c;outline-offset:2px}
+.info-tab.active{color:#9a3412;background:#fff7ed;border-bottom-color:#f7931a}
+.info-tab.active:hover{color:#7c2d12;background:#ffedd5}
+.info-tab:active{color:#7c2d12;background:#ffedd5}
+.tab-content{padding-top:14px;animation:tabFade .3s ease}
+.tab-content[hidden]{display:none}
+.tab-content:focus-visible{outline:2px solid #c2410c;outline-offset:4px;border-radius:4px}
+@keyframes tabFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tab-content{animation:none}}
+.tab-title{font-size:15px;font-weight:700;color:#0f1117;margin-bottom:10px}
+.info-tabs .muted{color:#4b5563;font-size:11.5px;font-weight:400}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.info-grid>*{min-width:0}
+.info-card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;font-size:12.5px;color:#1f2937;line-height:1.55}
+.info-card h3{font-size:13px;font-weight:700;color:#0f1117;margin-bottom:6px}
+.info-card p{margin:6px 0}
+.info-card ul{margin:6px 0 6px 18px}
+.info-card li{margin:3px 0}
+.info-card ul.bands{list-style:none;margin-left:0;display:grid;gap:4px}
+.band{display:inline-block;min-width:52px;margin-right:6px;padding:1px 6px;border-radius:6px;border:1px solid;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;text-align:center}
+.b-strong{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
+.b-acc,.b-hold{background:#fffbeb;color:#92400e;border-color:#fde68a}
+.b-red,.b-exit{background:#fef2f2;color:#991b1b;border-color:#fecaca}
+.help-layer{margin-top:14px}
+.help-layer h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;font-weight:700;color:#0f1117;margin-bottom:6px}
+.help-layer .lbadge{width:26px;height:26px;font-size:11px;border-radius:6px}
+/* darker shades of the layer colours so the small white labels reach 4.5:1 */
+.help-layer .l1b{background:#1d4ed8}.help-layer .l2b{background:#b45309}.help-layer .l3b{background:#047857}
+.help-item{border-left:3px solid #f7931a;background:#fffaf3;border-radius:0 8px 8px 0;padding:10px 14px;margin:8px 0}
+.help-name{font-size:13px;font-weight:700;color:#0f1117;margin-bottom:4px}
+.help-item dl{display:grid;grid-template-columns:120px 1fr;gap:3px 10px;font-size:12px;line-height:1.5;color:#1f2937}
+.help-item dt{color:#4b5563;font-weight:600}
+.help-item dd{margin:0}
+.ref-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ref-group{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px}
+.ref-group h3{font-size:10.5px;font-family:'Space Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:#4b5563;margin-bottom:6px}
+.ref-group ul{list-style:none;font-size:12.5px;color:#1f2937;line-height:1.5}
+.ref-group li{padding:4px 0;border-bottom:1px solid #f3f4f6}
+.ref-group li:last-child{border-bottom:none}
+.ref-group a,.info-card a{color:#1d4ed8;font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.ref-group a:hover{color:#1e3a8a}
+.ref-group a:focus-visible{outline:2px solid #c2410c;outline-offset:2px;border-radius:2px}
+.info-foot{margin-top:14px;padding-top:10px;border-top:1px solid #f3f4f6;font-size:10.5px;font-family:'Space Mono',monospace;color:#4b5563}
+@media(max-width:900px){.info-grid,.ref-grid{grid-template-columns:1fr}.help-item dl{grid-template-columns:1fr}.help-item dt{margin-top:4px}}
+/* Master BTC */
+.master-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin-bottom:1.5rem}
+.mc-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.mc-t{font-size:13px;font-weight:700}
+.mc-s{font-size:10px;color:#9ca3af;font-family:'Space Mono',monospace;letter-spacing:.06em;margin-top:2px}
+/* TradingView section */
+.tv-section{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin-bottom:1.5rem}
+.tv-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.tv-title{font-size:13px;font-weight:700}
+.tv-card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:13px 15px;cursor:pointer;transition:all .2s;text-decoration:none;display:block}
+.tv-card:hover{border-color:#f7931a;background:#fff7ed;transform:translateY(-1px)}
+.tv-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.tv-card-name{font-size:12px;font-weight:700;color:#0f1117}
+.tv-card-sym{font-size:9px;font-family:'Space Mono',monospace;color:#9ca3af;letter-spacing:.05em}
+.tv-card-val{font-size:15px;font-weight:700;font-family:'Space Mono',monospace}
+.tv-card-desc{font-size:10px;color:#6b7280;line-height:1.4;margin-top:4px}
+.tv-card-arrow{font-size:12px;color:#f7931a;margin-top:2px}
+/* Decision */
+.decision{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin-bottom:1.5rem}
+.d-title{font-size:10px;font-family:'Space Mono',monospace;color:#9ca3af;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+.d-hdr{display:grid;grid-template-columns:130px 1fr 1fr 100px;gap:8px;padding:6px 0;border-bottom:1px solid #e5e7eb;margin-bottom:2px}
+.d-row{display:grid;grid-template-columns:130px 1fr 1fr 100px;gap:8px;padding:8px 0;border-bottom:1px solid #f9fafb;align-items:center;font-size:11.5px}
+.d-row:last-child{border-bottom:none}
+.d-lbl{font-size:10px;font-family:'Space Mono',monospace;color:#9ca3af;letter-spacing:.06em}
+.d-name{font-weight:600;font-size:12px}
+.d-cond{color:#6b7280;line-height:1.4}
+.d-act{font-family:'Space Mono',monospace;font-size:11px;font-weight:700}
+/* Alerts */
+.alerts{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin-bottom:1.5rem}
+.a-row{display:grid;grid-template-columns:120px 1fr 90px;gap:10px;padding:8px 0;border-bottom:1px solid #f9fafb;align-items:center;font-size:11.5px}
+.a-row:last-child{border-bottom:none}
+.a-cond{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:#374151}
+.a-desc{color:#6b7280;font-size:11px;line-height:1.4}
+/* Cycle */
+.cycle-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin-bottom:1.5rem}
+.cyc-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+.cyc-cell{padding:10px 12px;background:#f9fafb;border-radius:8px}
+.cyc-l{font-size:9.5px;font-family:'Space Mono',monospace;color:#9ca3af;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.cyc-v{font-size:14px;font-weight:700;color:#0f1117}
+.cyc-s{font-size:10px;color:#6b7280;margin-top:3px;line-height:1.4}
+/* Up / dn / nx */
+.up{color:#059669}.dn{color:#dc2626}.nx{color:#d97706}
+/* Loading */
+.loading-spinner{display:inline-block;width:12px;height:12px;border:2px solid #e5e7eb;border-top-color:#f7931a;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+/* Footer */
+.footer{margin-top:1.5rem;padding-top:1rem;border-top:1px solid #e5e7eb;font-size:10px;color:#9ca3af;font-family:'Space Mono',monospace;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.header,.hero,.master-card,.layer,.tv-section,.decision,.alerts,.cycle-card{animation:fadeUp .4s ease both}
+@media(max-width:900px){
+  .hero,.g4{grid-template-columns:repeat(2,1fr)}
+  .g2,.g3{grid-template-columns:1fr}
+  .d-hdr,.d-row{grid-template-columns:1fr 1fr}
+  .a-row{grid-template-columns:1fr 1fr}
+  .cyc-row{grid-template-columns:repeat(2,1fr)}
+  .tv-tabs{gap:4px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="file-notice" id="fileNotice" role="alert" hidden>
+  <strong>Opened as a local file, so most live data cannot load.</strong>
+  Browsers block FRED and Yahoo Finance requests from local files. Close this tab and double-click
+  <code>Open_BTC_Dashboard.cmd</code> in the dashboard folder: it starts the local data server and opens
+  <code>http://127.0.0.1:8765/btc_dashboard_v2.html</code>, which loads every source automatically.
+  <span id="fileNoticeLive"></span>
+</div>
+<script>
+/* Runs before anything else, so the notice appears even if later scripts fail. */
+if (location.protocol === 'file:') {
+  document.getElementById('fileNotice').hidden = false;
+  (async () => {
+    for (let port = 8765; port <= 8775; port++) {
+      try {
+        const r = await fetch(`http://127.0.0.1:${port}/api/health`, { cache: 'no-store', signal: AbortSignal.timeout(800) });
+        const j = await r.json();
+        if (j.app === 'btc-macro-dashboard') {
+          const a = document.createElement('a');
+          a.href = `http://127.0.0.1:${port}/btc_dashboard_v2.html`; a.textContent = 'The local server is already running: open the live dashboard';
+          document.getElementById('fileNoticeLive').append(' ', a, '.');
+          return;
+        }
+      } catch (e) { /* not running on this port */ }
+    }
+  })();
+}
+</script>
+
+<!-- Header -->
+<div class="header">
+  <div>
+    <div class="logo-row">
+      <div class="btc-c">₿</div>
+      <div class="ht">BTC <span>Macro</span> — 3-Layer System</div>
+    </div>
+    <div class="hs">LIQUIDITY · MARKET PRESSURE · CRYPTO INTERNALS &nbsp;·&nbsp; <span id="dashboardDate">CURRENT MARKET DATA</span></div>
+  </div>
+  <div class="hdr">
+    <div class="live-pill" id="livePill"><span class="live-dot"></span> <span id="dataStatus">Loading live data…</span></div>
+    <button class="refresh-btn" id="refreshBtn" onclick="fullRefresh()"><span id="rIcon">↻</span> Refresh All</button>
+    <div class="lu" id="lastUpdated">Fetching live data…</div>
+  </div>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hcard hc1">
+    <div class="hc-lbl">BTC / USDT · Binance spot</div>
+    <div class="hc-v" id="h-btc">—</div>
+    <div class="hc-sub" id="h-btc-change">Loading BTC/USDT…</div>
+    <div class="hc-meta ib-meta" id="meta-btc">Loading…</div>
+  </div>
+  <div class="hcard hc2">
+    <div class="hc-lbl">Halving Cycle</div>
+    <div class="hc-sm" id="hc-cycle-month">—</div>
+    <div class="hc-sub" id="hc-cycle-sub">Halving 2024-04-20 (block 840,000)</div>
+  </div>
+  <div class="hcard hc3">
+    <div class="hc-lbl">3-Layer Composite Score</div>
+    <div class="hc-v"><span id="compositeScore">—</span><span style="font-size:13px;color:#9ca3af"> / 10</span></div>
+    <div class="score-bar-wrap">
+      <div class="score-bar-bg"><div class="score-bar-fill" id="scoreBar" style="width:0%"></div></div>
+    </div>
+    <div class="hc-sub" id="scoreBreakdown">Waiting for data…</div>
+  </div>
+  <div class="hcard hc4">
+    <div class="hc-lbl">Action Signal</div>
+    <div class="hc-sm" id="actionSignal">—</div>
+    <div class="hc-sub" id="actionDesc">Waiting for data…</div>
+  </div>
+</div>
+
+<!-- Master BTC Chart -->
+<div class="master-card">
+  <div class="mc-hd">
+    <div>
+      <div class="mc-t">BTC/USDT — 6-Month Context (Master Reference)</div>
+      <div class="mc-s" id="btc-chart-subtitle">LOADING 180 DAYS OF DAILY BTC/USDT HISTORY…</div>
+    </div>
+    <div style="display:flex;gap:14px;font-size:10px;color:#6b7280;font-family:'Space Mono',monospace;flex-wrap:wrap">
+      <span><span style="display:inline-block;width:10px;height:3px;background:#f7931a;vertical-align:middle;margin-right:4px;border-radius:2px"></span>BTC Price</span>
+      <span id="btcSupportLegend"><span style="display:inline-block;width:10px;height:3px;background:#10b981;vertical-align:middle;margin-right:4px;border-radius:2px"></span>30D low</span>
+      <span id="btcResistanceLegend"><span style="display:inline-block;width:10px;height:3px;background:#ef4444;vertical-align:middle;margin-right:4px;border-radius:2px"></span>30D high</span>
+    </div>
+  </div>
+  <div style="height:200px;position:relative">
+    <canvas id="btcMaster" role="img" aria-label="BTC/USDT daily closes">BTC/USDT daily closes from Binance.</canvas>
+  </div>
+</div>
+
+<!-- TradingView Section -->
+<div class="tv-section">
+  <div class="tv-hd">
+    <div>
+      <div class="tv-title">TradingView — Quick Launch</div>
+      <div style="font-size:10px;color:#9ca3af;font-family:'Space Mono',monospace;margin-top:2px">CLICK ANY CARD TO OPEN LIVE CHART IN TRADINGVIEW</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px" id="tvCards"></div>
+</div>
+
+<!-- LAYER 1 -->
+<div class="layer">
+  <div class="lhdr">
+    <div class="lbadge l1b">L1</div>
+    <div>
+      <div class="lt">Layer 1 — Macro Liquidity</div>
+      <div class="lp">US FEDERAL RESERVE &amp; TREASURY DATA VIA FRED · ANALYTICAL PROXY, NOT A TIMING SIGNAL</div>
+    </div>
+    <div class="lv na-v" id="l1verdict">Awaiting data</div>
+  </div>
+  <!-- L1 12-month history table -->
+  <div class="l1h" id="l1History">
+    <div class="l1h-hd">
+      <div>
+        <div class="l1h-t">Layer 1 — 12-Month Liquidity History</div>
+        <div class="l1h-s" id="l1h-status">LOADING FRED DATA…</div>
+      </div>
+      <div class="l1h-legend" aria-label="Badge legend">
+        <span class="vb bull">Bullish</span><span class="vb neut">Neutral</span><span class="vb bear">Bearish</span><span class="vb pend">Not yet published</span><span class="vb na">Unavailable</span>
+      </div>
+    </div>
+    <div class="l1h-chips" id="l1h-chips" aria-label="FRED series freshness"></div>
+    <details class="l1h-rules">
+      <summary>Methodology &amp; badge rules</summary>
+      <ul>
+        <li><strong>Rows:</strong> the 12 completed calendar months plus the current partial month. Historical cells use the last valid observation within the month (monthly M2: that month's observation). The current row shows each metric's latest published observation, with its own date.</li>
+        <li><strong>NLM 8W Δ:</strong> change over 8 weeks in net liquidity = WALCL/1e6 − WDTGAL/1e6 − RRPONTSYD/1,000 ($T), with all three on the same Wednesday. If any input is missing for that Wednesday (e.g. a holiday), the value is unavailable and is not carried forward. This is an analytical proxy, not a proven lead indicator.</li>
+        <li><strong>Bullish:</strong> M2 3-month change &gt; +0.1% · NLM &gt; +0.1T · RRP &lt; $500B · TGA &lt; $600B · Real yield &lt; 1.5% · WALCL 13-week change &gt; 0</li>
+        <li><strong>Bearish:</strong> M2 &lt; −0.1% · NLM &lt; −0.1T · RRP &gt; $1,000B · TGA &gt; $800B · Real yield &gt; 2.5% · WALCL &lt; −3%. <strong>Neutral:</strong> in between.</li>
+        <li><strong>L1 Signal:</strong> Bullish if ≥4 of 6 bullish; Bearish if ≥3 bearish; otherwise Neutral. If missing inputs could change the result, it shows Insufficient data. <strong>L1 score:</strong> bull 2 / neutral 1 / bear 0 points averaged over available inputs (needs ≥4).</li>
+        <li>Historical values are FRED's latest revised observations, not real-time vintages. Use ALFRED for backtests. Click any value to see its source.</li>
+      </ul>
+    </details>
+    <div class="l1h-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col" aria-sort="ascending"><button class="l1h-sort" data-sort="date" aria-pressed="true">Date <span class="arr" aria-hidden="true">▲</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="m2Level" aria-pressed="false">US M2 ($T) <span class="arr" aria-hidden="true">↕</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="m2Trend" aria-pressed="false">M2 Trend (3M %) <span class="arr" aria-hidden="true">↕</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="nlm" aria-pressed="false">NLM 8W Δ ($T) <span class="arr" aria-hidden="true">↕</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="rrp" aria-pressed="false">RRP ($B) <span class="arr" aria-hidden="true">↕</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="tga" aria-pressed="false">TGA ($B) <span class="arr" aria-hidden="true">↕</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="ry" aria-pressed="false">Real Yield (%) <span class="arr" aria-hidden="true">↕</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="walcl" aria-pressed="false">WALCL ($T · 13W %) <span class="arr" aria-hidden="true">↕</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="signal" aria-pressed="false">L1 Signal <span class="arr" aria-hidden="true">↕</span></button></th>
+          </tr>
+        </thead>
+        <tbody id="l1h-body"></tbody>
+      </table>
+    </div>
+    <div class="l1h-src" id="l1h-src" hidden aria-live="polite"></div>
+    <div class="l1h-foot">
+      <span>Sources: FRED series <a href="https://fred.stlouisfed.org/series/M2SL" target="_blank" rel="noopener">M2SL</a>, <a href="https://fred.stlouisfed.org/series/WALCL" target="_blank" rel="noopener">WALCL</a>, <a href="https://fred.stlouisfed.org/series/WDTGAL" target="_blank" rel="noopener">WDTGAL</a>, <a href="https://fred.stlouisfed.org/series/RRPONTSYD" target="_blank" rel="noopener">RRPONTSYD</a>, <a href="https://fred.stlouisfed.org/series/DFII10" target="_blank" rel="noopener">DFII10</a>. Manual <strong>Set</strong> values apply to the current row only and are marked ✎.</span>
+      <button type="button" class="l1h-clear" id="l1-clear" hidden>Clear all manual values</button>
+    </div>
+  </div>
+  <div class="g2" style="margin-bottom:12px">
+    <!-- US M2 -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">US M2 Money Stock</div><div class="ibs">FRED:M2SL · MONTHLY · 3-MONTH TREND</div></div>
+        <span class="badge na-b" id="m2-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="m2-val">—</span><span class="ib-dlt" id="m2-date">Loading…</span></div>
+      <div class="ib-logic"><strong>Signal:</strong> rising US M2 (3-month change &gt; +0.1%) is a liquidity tailwind. This is US M2, not a global liquidity measure. M2 is published about 3–4 weeks after month end.</div>
+      <div class="input-row">
+        <label for="in-m2">M2 Trend:</label>
+        <input id="in-m2" type="number" step="1" min="-1" max="1" placeholder="1=Rising 0=Flat -1=Falling">
+        <button class="upd-btn" onclick="updateIndicator('m2',parseFloat(document.getElementById('in-m2').value))">Set</button>
+      </div>
+    </div>
+    <!-- NLM -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">Net Liquidity Momentum (NLM)</div><div class="ibs">WALCL−TGA−RRP · SAME-WEDNESDAY · 8-WEEK Δ</div></div>
+        <span class="badge na-b" id="nlm-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="nlm-val">—</span><span class="ib-dlt" id="nlm-date">Loading…</span></div>
+      <div class="ib-logic"><strong>Signal:</strong> NLM &gt; +0.1T bullish, &lt; −0.1T bearish. This is an analytical proxy for system liquidity. Any lead over BTC is not established here, so don't use it as a timing signal.</div>
+      <div class="input-row">
+        <label for="in-nlm">NLM $T:</label>
+        <input id="in-nlm" type="number" step="0.01" placeholder="8-week change, $T">
+        <button class="upd-btn" onclick="updateIndicator('nlm',parseFloat(document.getElementById('in-nlm').value))">Set</button>
+      </div>
+    </div>
+  </div>
+  <div class="g4">
+    <!-- RRP -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">Reverse Repo (RRP)</div><div class="ibs">FRED:RRPONTSYD · DAILY</div></div>
+        <span class="badge na-b" id="rrp-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="rrp-val">—</span><span class="ib-dlt" id="rrp-date">Loading…</span></div>
+      <div class="ib-logic"><strong>↓ RRP = cash leaving the Fed facility for markets.</strong> &lt; $500B bullish, &gt; $1,000B bearish. Near zero, there is little left to release.</div>
+      <div class="input-row">
+        <label for="in-rrp">RRP $B:</label>
+        <input id="in-rrp" type="number" step="0.01" placeholder="Billions">
+        <button class="upd-btn" onclick="updateIndicator('rrp',parseFloat(document.getElementById('in-rrp').value))">Set</button>
+      </div>
+    </div>
+    <!-- TGA -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">TGA (Treasury Acct)</div><div class="ibs">FRED:WDTGAL · WEDNESDAY LEVEL</div></div>
+        <span class="badge na-b" id="tga-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="tga-val">—</span><span class="ib-dlt" id="tga-date">Loading…</span></div>
+      <div class="ib-logic"><strong>↓ TGA = Treasury spending cash into the system.</strong> &lt; $600B bullish, &gt; $800B bearish. Wednesday level, matched to WALCL.</div>
+      <div class="input-row">
+        <label for="in-tga">TGA $B:</label>
+        <input id="in-tga" type="number" step="1" placeholder="Billions">
+        <button class="upd-btn" onclick="updateIndicator('tga',parseFloat(document.getElementById('in-tga').value))">Set</button>
+      </div>
+    </div>
+    <!-- Real Yield -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">10Y Real Yield</div><div class="ibs">FRED:DFII10 · DAILY</div></div>
+        <span class="badge na-b" id="ry-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="ry-val">—</span><span class="ib-dlt" id="ry-date">Loading…</span></div>
+      <div class="ib-logic"><strong>↓ Real yield = BTC tailwind.</strong> &lt; 1.5% bullish, &gt; 2.5% bearish. Higher real yields make cash and TIPS more competitive.</div>
+      <div class="input-row">
+        <label for="in-ry">Real Yield %:</label>
+        <input id="in-ry" type="number" step="0.01" placeholder="Percent">
+        <button class="upd-btn" onclick="updateIndicator('ry',parseFloat(document.getElementById('in-ry').value))">Set</button>
+      </div>
+    </div>
+    <!-- WALCL -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">Fed Balance Sheet</div><div class="ibs">FRED:WALCL · WEDNESDAY LEVEL</div></div>
+        <span class="badge na-b" id="walcl-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="walcl-val">—</span><span class="ib-dlt" id="walcl-date">Loading…</span></div>
+      <div class="ib-logic"><strong>Badge uses the 13-week change:</strong> rising = bullish, falling more than 3% = bearish (QT pace), otherwise neutral.</div>
+      <div class="input-row">
+        <label for="in-walcl">WALCL $T:</label>
+        <input id="in-walcl" type="number" step="0.01" placeholder="Trillions">
+        <button class="upd-btn" onclick="updateIndicator('walcl',parseFloat(document.getElementById('in-walcl').value))">Set</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYER 2 -->
+<div class="layer">
+  <div class="lhdr">
+    <div class="lbadge l2b">L2</div>
+    <div>
+      <div class="lt">Layer 2 — Market Pressure &amp; Flow (Fast Signals)</div>
+      <div class="lp">CONFIRMS OR INVALIDATES MACRO · COINCIDENT INDICATORS</div>
+    </div>
+    <div class="lv na-v" id="l2verdict">Awaiting data</div>
+  </div>
+  <div class="g3">
+    <!-- DXY -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">DXY (US Dollar Index)</div><div class="ibs">ICE DX-Y.NYB · INVERSE TO BTC</div></div>
+        <span class="badge na-b" id="dxy-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="dxy-val">—</span><span class="ib-dlt" id="dxy-delta"></span></div>
+      <div class="ib-meta" id="meta-dxy">Loading…</div>
+      <div class="chart-box"><canvas id="dxyChart" role="img" aria-label="DXY daily closes, last month">DXY daily closes.</canvas></div>
+      <div class="ib-logic"><strong>↓ DXY = ↑ BTC.</strong> Below 98 bullish, above 102 bearish. Daily closes from Yahoo Finance (ICE US Dollar Index).</div>
+      <div class="input-row">
+        <label for="in-dxy">DXY:</label>
+        <input id="in-dxy" type="number" step="0.01" placeholder="Index value">
+        <button class="upd-btn" onclick="updateIndicator('dxy',parseFloat(document.getElementById('in-dxy').value))">Set</button>
+      </div>
+    </div>
+    <!-- Yield Spread -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">Yield Spread (10Y−2Y)</div><div class="ibs">FRED DGS10 − DGS2 · SAME DATE</div></div>
+        <span class="badge na-b" id="ys-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="ys-val">—</span><span class="ib-dlt" id="ys-delta"></span></div>
+      <div class="ib-meta" id="meta-ys">Loading…</div>
+      <div class="chart-box"><canvas id="spreadChart" role="img" aria-label="10-year minus 2-year Treasury spread, last 90 common dates">10Y−2Y spread.</canvas></div>
+      <div class="ib-logic"><strong>↑ Spread = easier future policy expected.</strong> Above +0.5% bullish, below 0 (inverted) bearish. Both yields are taken from the same date (latest published).</div>
+      <div class="input-row">
+        <label for="in-ys">Spread %:</label>
+        <input id="in-ys" type="number" step="0.01" placeholder="Percent">
+        <button class="upd-btn" onclick="updateIndicator('ys',parseFloat(document.getElementById('in-ys').value))">Set</button>
+      </div>
+    </div>
+    <!-- BTC/QQQ -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">BTC / QQQ Ratio</div><div class="ibs">BINANCE BTCUSDT ÷ NASDAQ QQQ</div></div>
+        <span class="badge na-b" id="qqq-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="qqq-val">—</span><span class="ib-dlt" id="qqq-delta"></span></div>
+      <div class="ib-meta" id="meta-qqq">Loading…</div>
+      <div class="chart-box"><canvas id="qqqChart" role="img" aria-label="BTC to QQQ ratio by trading date">BTC/QQQ ratio.</canvas></div>
+      <div class="ib-logic"><strong>↑ BTC/QQQ = BTC outperforming equities.</strong> Above 140 bullish, below 90 bearish. Current value: live BTC/USDT ÷ QQQ's latest price (USD). History: BTC UTC daily close ÷ QQQ close on the same date.</div>
+      <div class="input-row">
+        <label for="in-qqq">BTC/QQQ:</label>
+        <input id="in-qqq" type="number" step="0.01" placeholder="Ratio">
+        <button class="upd-btn" onclick="updateIndicator('qqq',parseFloat(document.getElementById('in-qqq').value))">Set</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYER 3 -->
+<div class="layer">
+  <div class="lhdr">
+    <div class="lbadge l3b">L3</div>
+    <div>
+      <div class="lt">Layer 3 — Crypto Internals (Timing Layer)</div>
+      <div class="lp">ENTRY/EXIT PRECISION · SENTIMENT &amp; POSITIONING</div>
+    </div>
+    <div class="lv na-v" id="l3verdict">Awaiting data</div>
+  </div>
+  <div class="g4">
+    <!-- MVRV -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">MVRV Z-Score</div><div class="ibs">MARKET vs REALIZED VALUE · MANUAL</div></div>
+        <span class="badge na-b" id="mvrv-badge">Enter value</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="mvrv-val">—</span></div>
+      <div class="ib-meta st-manual" id="meta-mvrv">Manual input · no verified free automated source</div>
+      <div class="chart-empty">Manual input — no history feed. Reference chart: <a href="https://www.bitcoinmagazinepro.com/charts/mvrv-zscore/" target="_blank" rel="noopener">MVRV Z-Score</a></div>
+      <div class="ib-logic"><strong>Zones:</strong> &lt;−0.3 = Accumulate · 1–2 = Neutral · &gt;3 = Take profits · &gt;6 = Exit. The shared value lives in <code>data/manual.json</code> (value + date, same on every device); <strong>Set</strong> below only overrides it in this browser. With no value, MVRV is excluded from the score.</div>
+      <div class="input-row">
+        <label for="in-mvrv">MVRV Z:</label>
+        <input id="in-mvrv" type="number" step="0.1" placeholder="Z-Score">
+        <button class="upd-btn" onclick="updateIndicator('mvrv',parseFloat(document.getElementById('in-mvrv').value))">Set</button>
+      </div>
+    </div>
+    <!-- BTC.D -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">BTC Dominance (BTC.D)</div><div class="ibs">COINGECKO · SHARE OF TOTAL CRYPTO MCAP</div></div>
+        <span class="badge na-b" id="btcd-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="btcd-val">—</span><span class="ib-dlt" id="btcd-delta"></span></div>
+      <div class="ib-meta" id="meta-btcd">Loading…</div>
+      <div class="chart-empty">Current value only — the free source has no history feed.</div>
+      <div class="ib-logic"><strong>Matrix:</strong> BTC.D↑ USDT.D↓ = BTC rally · Both↓ = Altseason · BTC.D↓ USDT.D↑ = Cashing out. USDT.D is not tracked here; the badge uses BTC.D only (&gt;58% rally, &lt;50% altseason).</div>
+      <div class="input-row">
+        <label for="in-btcd">BTC.D %:</label>
+        <input id="in-btcd" type="number" step="0.1" placeholder="Dominance %">
+        <button class="upd-btn" onclick="updateIndicator('btcd',parseFloat(document.getElementById('in-btcd').value))">Set</button>
+      </div>
+    </div>
+    <!-- SSR -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">Stablecoin Supply Ratio</div><div class="ibs">BTC MCAP / STABLECOIN MCAP</div></div>
+        <span class="badge na-b" id="ssr-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="ssr-val">—</span><span class="ib-dlt" id="ssr-delta"></span></div>
+      <div class="ib-meta" id="meta-ssr">Loading…</div>
+      <div class="chart-empty">Current value only — no history feed.</div>
+      <div class="ib-logic"><strong>SSR↓ + BTC flat = ACCUMULATE.</strong> Both↑ = Rally thinning. Peaking = Distribution. &lt;8 accumulate, &gt;12 distribution. BTC market cap (CoinGecko total × BTC.D) ÷ sum of CoinGecko "stablecoins" category market caps (top 250).</div>
+      <div class="input-row">
+        <label for="in-ssr">SSR:</label>
+        <input id="in-ssr" type="number" step="0.1" placeholder="Ratio">
+        <button class="upd-btn" onclick="updateIndicator('ssr',parseFloat(document.getElementById('in-ssr').value))">Set</button>
+      </div>
+    </div>
+    <!-- Funding -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">Funding Rate</div><div class="ibs">BINANCE BTCUSDT PERP · 8H INTERVAL</div></div>
+        <span class="badge na-b" id="fund-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="fund-val">—</span><span class="ib-dlt" id="fund-delta"></span></div>
+      <div class="ib-meta" id="meta-fund">Loading…</div>
+      <div class="chart-box"><canvas id="fundingChart" role="img" aria-label="Settled 8-hour funding rates, last 90 periods">Funding history.</canvas></div>
+      <div class="ib-logic"><strong>Negative funding = shorts crowded.</strong> &lt;−0.005% squeeze setup, &gt;0.01% crowded longs. Value = current-period rate (premiumIndex); chart = last 90 settled 8h rates. Open interest is not tracked here.</div>
+      <div class="input-row">
+        <label for="in-fund">Funding %:</label>
+        <input id="in-fund" type="number" step="0.001" placeholder="Rate % per 8h">
+        <button class="upd-btn" onclick="updateIndicator('fund',parseFloat(document.getElementById('in-fund').value)/100)">Set</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Decision matrix -->
+<div class="decision">
+  <div class="d-title">Decision Matrix by Condition</div>
+  <div class="d-hdr">
+    <span class="d-lbl">Condition</span>
+    <span class="d-lbl">Layer 1 (Liquidity)</span>
+    <span class="d-lbl">Layer 2 (Flow)</span>
+    <span class="d-lbl">Action</span>
+  </div>
+  <div class="d-row"><span class="d-name up">Strong Buy</span><span class="d-cond">M2↑ NLM green RRP/TGA↓</span><span class="d-cond">DXY↓ BTC/QQQ↑</span><span class="d-act up">ADD 2× NORMAL</span></div>
+  <div class="d-row"><span class="d-name nx">Accumulate</span><span class="d-cond">Mixed · NLM turning ↑</span><span class="d-cond">DXY↓ BTC/QQQ recovering</span><span class="d-act nx">DCA / HOLD CORE</span></div>
+  <div class="d-row"><span class="d-name dn">Take Profits</span><span class="d-cond">MVRV Z&gt;3 · M2 flattening</span><span class="d-cond">DXY↑ BTC/QQQ rolling over</span><span class="d-act dn">REDUCE 30-50%</span></div>
+  <div class="d-row"><span class="d-name dn">Exit Aggressively</span><span class="d-cond">MVRV Z&gt;6 · NLM red</span><span class="d-cond">DXY strong↑ Spread inverting</span><span class="d-act dn">CASH / USDT</span></div>
+  <div class="d-row"><span class="d-name" style="color:#6b7280">Wait / Avoid</span><span class="d-cond">NLM grey · M2 sideways</span><span class="d-cond">DXY choppy</span><span class="d-act nx">SIDELINE</span></div>
+</div>
+
+<!-- Alerts -->
+<div class="alerts">
+  <div class="d-title">Active Alerts &amp; Triggers</div>
+  <div class="a-row"><span class="a-cond">NLM 8W Δ &gt; +0.1T</span><span class="a-desc">8-week change in Wednesday-aligned net liquidity (WALCL − TGA − RRP) above +$0.1T. Computed from the Layer 1 current row.</span><span class="badge na-b" id="alert-nlm-badge">No data</span></div>
+  <div class="a-row"><span class="a-cond">BTC &gt; $78,800</span><span class="a-desc">Break above a user-set resistance level (static threshold)</span><span class="badge na-b" id="alert-btc-hi">No data</span></div>
+  <div class="a-row"><span class="a-cond">BTC &lt; $70,000</span><span class="a-desc">User-set stop-loss level (static threshold)</span><span class="badge na-b" id="alert-btc-lo">No data</span></div>
+  <div class="a-row"><span class="a-cond">MVRV Z &gt; 3.0</span><span class="a-desc">Take-profits trigger. MVRV is manual: enter it in Layer 3 to evaluate.</span><span class="badge na-b" id="alert-mvrv">Enter MVRV</span></div>
+  <div class="a-row"><span class="a-cond">DXY &gt; 100</span><span class="a-desc">Dollar strength returning — invalidates Layer 2 bullish thesis</span><span class="badge na-b" id="alert-dxy">No data</span></div>
+  <div class="a-row"><span class="a-cond">Altseason Idx &gt;75</span><span class="a-desc">Rotate BTC profits into alts. No altseason index source is connected.</span><span class="badge na-b">No source</span></div>
+</div>
+
+<!-- Cycle Context -->
+<div class="cycle-card">
+  <div class="d-title">Halving Cycle Context &amp; Indicator Links</div>
+  <div class="cyc-row">
+    <div class="cyc-cell"><div class="cyc-l">Post-Halving Month</div><div class="cyc-v" id="cyc-month">—</div><div class="cyc-s">Cycle 4 · halving 2024-04-20 (computed from today's date)</div></div>
+    <div class="cyc-cell"><div class="cyc-l">ATH &amp; Drawdown</div><div class="cyc-v" id="cyc-ath">—</div><div class="cyc-s" id="cyc-dd">Waiting for CoinGecko ATH and Binance price</div></div>
+    <div class="cyc-cell"><div class="cyc-l">Next Expected Low · static note</div><div class="cyc-v">Q4 2026</div><div class="cyc-s">Analyst view from the 4-year-cycle pattern, not a live value · potential $40K · 70% max drawdown</div></div>
+    <div class="cyc-cell"><div class="cyc-l">Diminishing Returns · static note</div><div class="cyc-v">+97% (cycle 4)</div><div class="cyc-s">vs +560% cycle 3 · historical reference, not refreshed</div></div>
+  </div>
+  <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+    <a href="https://www.bitcoinmagazinepro.com/charts/mvrv-zscore/" target="_blank" style="font-size:11px;font-family:'Space Mono',monospace;color:#3b82f6;text-decoration:none;padding:5px 10px;border:1px solid #bfdbfe;border-radius:6px;background:#eff6ff">MVRV Z-Score</a>
+    <a href="https://cryptoquant.com/asset/btc/chart/market-indicator/stablecoin-supply-ratio-ssr" target="_blank" style="font-size:11px;font-family:'Space Mono',monospace;color:#3b82f6;text-decoration:none;padding:5px 10px;border:1px solid #bfdbfe;border-radius:6px;background:#eff6ff">SSR (CryptoQuant)</a>
+    <a href="https://coinalyze.net/bitcoin/open-interest/" target="_blank" style="font-size:11px;font-family:'Space Mono',monospace;color:#3b82f6;text-decoration:none;padding:5px 10px;border:1px solid #bfdbfe;border-radius:6px;background:#eff6ff">OI + Funding</a>
+    <a href="https://chartinspect.com/charts/pi-cycle-top" target="_blank" style="font-size:11px;font-family:'Space Mono',monospace;color:#3b82f6;text-decoration:none;padding:5px 10px;border:1px solid #bfdbfe;border-radius:6px;background:#eff6ff">Pi Cycle Top</a>
+    <a href="https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html" target="_blank" style="font-size:11px;font-family:'Space Mono',monospace;color:#3b82f6;text-decoration:none;padding:5px 10px;border:1px solid #bfdbfe;border-radius:6px;background:#eff6ff">CME FedWatch</a>
+    <a href="https://chartinspect.com/charts/profit-loss" target="_blank" style="font-size:11px;font-family:'Space Mono',monospace;color:#3b82f6;text-decoration:none;padding:5px 10px;border:1px solid #bfdbfe;border-radius:6px;background:#eff6ff">BTC Bottom (Profit/Loss)</a>
+  </div>
+</div>
+
+<!-- Info tabs: Overview · Help & Parameters · References & Links -->
+<section class="info-tabs" id="infoTabs" aria-label="Dashboard guide">
+  <div class="info-tablist" role="tablist" aria-label="Dashboard guide sections">
+    <button type="button" class="info-tab active" role="tab" id="tab-overview" aria-selected="true" aria-controls="panel-overview">Overview</button>
+    <button type="button" class="info-tab" role="tab" id="tab-help" aria-selected="false" aria-controls="panel-help" tabindex="-1">Help &amp; Parameters</button>
+    <button type="button" class="info-tab" role="tab" id="tab-refs" aria-selected="false" aria-controls="panel-refs" tabindex="-1">References &amp; Links</button>
+  </div>
+
+  <!-- TAB 1 — Overview -->
+  <div class="tab-content active" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
+    <h2 class="tab-title">Dashboard Overview</h2>
+    <div class="info-grid">
+      <article class="info-card">
+        <h3>What This Dashboard Does</h3>
+        <p>It reads Bitcoin's environment in three layers:</p>
+        <ul>
+          <li><strong>L1 — Macro liquidity:</strong> US M2, net liquidity, the Fed balance sheet, Treasury cash (TGA), reverse repo and real yields.</li>
+          <li><strong>L2 — Market pressure &amp; flow:</strong> the US dollar (DXY), the 10Y−2Y yield curve and BTC versus the Nasdaq-100 (QQQ).</li>
+          <li><strong>L3 — Crypto internals:</strong> MVRV, BTC dominance, the stablecoin supply ratio and perpetual funding.</li>
+        </ul>
+        <p>Each layer scores <strong>0–10</strong> from the inputs that have data, and the composite is their average (at least two layers are needed). Action bands:</p>
+        <ul class="bands">
+          <li><span class="band b-strong">≥ 8</span> Strong Buy</li>
+          <li><span class="band b-acc">≥ 6.5</span> Cautious Accumulate</li>
+          <li><span class="band b-hold">≥ 5</span> Hold / Small DCA</li>
+          <li><span class="band b-red">≥ 3</span> Reduce Exposure</li>
+          <li><span class="band b-exit">&lt; 3</span> Exit / Cash</li>
+        </ul>
+      </article>
+      <article class="info-card">
+        <h3>How to Read Historical Tables</h3>
+        <p>The Layer 1 table shows the last 12 completed months plus the current month. Each cell is a real FRED observation with its badge, and you can click it for the exact source and date. Look for <strong>runs of the same colour</strong> rather than single months:</p>
+        <ul>
+          <li><strong>M2 rising</strong> (green trend) means more money in the system. A lead of 8–12 weeks over BTC is often quoted, but it is a hypothesis, not something this dashboard has verified.</li>
+          <li><strong>RRP falling</strong> means cash leaving the Fed's reverse-repo facility and entering markets. Near zero, there is little left to release.</li>
+          <li><strong>DXY falling</strong> (Layer 2 chart, not in the table) means a weaker US dollar, which has historically been a tailwind for BTC.</li>
+        </ul>
+        <p class="muted">"Not yet published" means the data isn't due yet, not that it is missing. Values are FRED's latest revised figures, not what was known at the time.</p>
+      </article>
+      <article class="info-card">
+        <h3>Why Only a Few Charts?</h3>
+        <p>For Layer 1, the <strong>table replaced the six sparklines</strong>, including M2 and RRP. A table cell gives the exact value, its observation date and its signal colour for every month, which a small line cannot show reliably.</p>
+        <p>Charts are kept only where a real history feed exists: <strong>BTC/USDT (180 days)</strong>, <strong>DXY</strong>, the <strong>10Y−2Y spread</strong>, <strong>BTC/QQQ</strong> and <strong>funding rates</strong>. MVRV, BTC dominance and SSR show the current value only, because no free source provides their history. The dashboard does not draw sample lines in their place.</p>
+      </article>
+    </div>
+  </div>
+
+  <!-- TAB 2 — Help & Parameters -->
+  <div class="tab-content" id="panel-help" role="tabpanel" aria-labelledby="tab-help" tabindex="0" hidden>
+    <h2 class="tab-title">Help &amp; Parameters</h2>
+    <p class="muted">Weights: within each layer, every input counts equally (bullish 2, neutral 1, bearish 0 points). If an input has no data, the remaining inputs share its weight. The badges use the thresholds below; Layer 2 and 3 scores use slightly finer steps, shown in brackets.</p>
+
+    <div class="help-layer">
+      <h3><span class="lbadge l1b">L1</span> Layer 1 — Macro Liquidity <span class="muted">(6 inputs, needs ≥ 4)</span></h3>
+      <div class="help-item"><div class="help-name">▪ US M2 Money Supply</div><dl>
+        <dt>What It Is</dt><dd>The broad US money stock (cash, deposits, money-market funds), published monthly by the Federal Reserve (FRED M2SL).</dd>
+        <dt>Bullish Signal</dt><dd>M2 rising: 3-month change above +0.1%</dd>
+        <dt>Bearish Signal</dt><dd>M2 falling: 3-month change below −0.1% (between ±0.1% = flat, neutral)</dd>
+        <dt>Weight</dt><dd>≈ 16.7% of Layer 1 score (1 of 6)</dd></dl></div>
+      <div class="help-item"><div class="help-name">▪ Net Liquidity Momentum (NLM)</div><dl>
+        <dt>What It Is</dt><dd>The 8-week change in net liquidity = Fed assets − Treasury cash (TGA) − reverse repo, all taken on the same Wednesday. An analytical proxy, not a timing signal.</dd>
+        <dt>Bullish Signal</dt><dd>NLM above +$0.1T</dd>
+        <dt>Bearish Signal</dt><dd>NLM below −$0.1T</dd>
+        <dt>Weight</dt><dd>≈ 16.7% of Layer 1 score (1 of 6)</dd></dl></div>
+      <div class="help-item"><div class="help-name">▪ RRP (Reverse Repo)</div><dl>
+        <dt>What It Is</dt><dd>Cash that money-market funds park overnight at the Fed (FRED RRPONTSYD). When it drains, that cash goes back into markets.</dd>
+        <dt>Bullish Signal</dt><dd>RRP below $500B</dd>
+        <dt>Bearish Signal</dt><dd>RRP above $1,000B</dd>
+        <dt>Weight</dt><dd>≈ 16.7% of Layer 1 score (1 of 6)</dd></dl></div>
+      <div class="help-item"><div class="help-name">▪ TGA (Treasury General Account)</div><dl>
+        <dt>What It Is</dt><dd>The US Treasury's cash balance at the Fed, Wednesday level (FRED WDTGAL). A rising TGA drains liquidity; spending it down adds liquidity.</dd>
+        <dt>Bullish Signal</dt><dd>TGA below $600B</dd>
+        <dt>Bearish Signal</dt><dd>TGA above $800B</dd>
+        <dt>Weight</dt><dd>≈ 16.7% of Layer 1 score (1 of 6)</dd></dl></div>
+      <div class="help-item"><div class="help-name">▪ 10Y Real Yield</div><dl>
+        <dt>What It Is</dt><dd>The 10-year Treasury yield after inflation, measured by TIPS (FRED DFII10). High real yields make cash and bonds compete with BTC.</dd>
+        <dt>Bullish Signal</dt><dd>Real yield below 1.5%</dd>
+        <dt>Bearish Signal</dt><dd>Real yield above 2.5%</dd>
+        <dt>Weight</dt><dd>≈ 16.7% of Layer 1 score (1 of 6)</dd></dl></div>
+      <div class="help-item"><div class="help-name">▪ Fed Balance Sheet (WALCL)</div><dl>
+        <dt>What It Is</dt><dd>The Federal Reserve's total assets, Wednesday level. Growth (QE) adds liquidity; shrinkage (QT) removes it.</dd>
+        <dt>Bullish Signal</dt><dd>13-week change above 0% (rising)</dd>
+        <dt>Bearish Signal</dt><dd>13-week change below −3% (fast shrinking)</dd>
+        <dt>Weight</dt><dd>≈ 16.7% of Layer 1 score (1 of 6)</dd></dl></div>
+    </div>
+
+    <div class="help-layer">
+      <h3><span class="lbadge l2b">L2</span> Layer 2 — Market Pressure &amp; Flow <span class="muted">(3 inputs, needs ≥ 2)</span></h3>
+      <div class="help-item"><div class="help-name">▪ DXY (US Dollar Index)</div><dl>
+        <dt>What It Is</dt><dd>The ICE index of the US dollar against six major currencies. BTC has tended to move inversely to the dollar.</dd>
+        <dt>Bullish Signal</dt><dd>DXY below 98 (score steps: &lt; 98 / &lt; 100 / &lt; 102)</dd>
+        <dt>Bearish Signal</dt><dd>DXY above 102</dd>
+        <dt>Weight</dt><dd>≈ 33.3% of Layer 2 score (1 of 3)</dd></dl></div>
+      <div class="help-item"><div class="help-name">▪ Yield Curve (10Y−2Y Spread)</div><dl>
+        <dt>What It Is</dt><dd>The 10-year minus the 2-year Treasury yield on the same date (FRED DGS10 − DGS2). A steeper curve usually signals easier policy ahead.</dd>
+        <dt>Bullish Signal</dt><dd>Spread above +0.5% (score steps: &gt; 1.0 / &gt; 0.3 / &gt; 0%)</dd>
+        <dt>Bearish Signal</dt><dd>Spread below 0% (inverted curve)</dd>
+        <dt>Weight</dt><dd>≈ 33.3% of Layer 2 score (1 of 3)</dd></dl></div>
+      <div class="help-item"><div class="help-name">▪ BTC/QQQ Ratio</div><dl>
+        <dt>What It Is</dt><dd>BTC/USDT price divided by the QQQ (Nasdaq-100 ETF) price. It shows whether BTC is outperforming tech equities.</dd>
+        <dt>Bullish Signal</dt><dd>Ratio above 140 (score steps: &gt; 140 / &gt; 110 / &gt; 90)</dd>
+        <dt>Bearish Signal</dt><dd>Ratio below 90</dd>
+        <dt>Weight</dt><dd>≈ 33.3% of Layer 2 score (1 of 3)</dd></dl></div>
+    </div>
+
+    <div class="help-layer">
+      <h3><span class="lbadge l3b">L3</span> Layer 3 — Crypto Internals <span class="muted">(4 inputs, needs ≥ 3)</span></h3>
+      <div class="help-item"><div class="help-name">▪ MVRV Z-Score</div><dl>
+        <dt>What It Is</dt><dd>How far BTC's market value sits above its "realized" value (the price coins last moved at), in standard deviations. You enter it by hand, because no verified free automated source exists.</dd>
+        <dt>Bullish Signal</dt><dd>Below 0.5 (accumulate zone; score steps: &lt; 0 / &lt; 1.5 / &lt; 3)</dd>
+        <dt>Bearish Signal</dt><dd>3 or above (take profits); 6 or above (exit zone)</dd>
+        <dt>Weight</dt><dd>25% of Layer 3 score (1 of 4); excluded until you enter a value</dd></dl></div>
+      <div class="help-item"><div class="help-name">▪ BTC Dominance</div><dl>
+        <dt>What It Is</dt><dd>BTC's share of total crypto market cap (CoinGecko). High dominance = capital favouring BTC; falling dominance = rotation into alts.</dd>
+        <dt>Bullish Signal</dt><dd>Above 58% (score steps: &gt; 58 / &gt; 55 / &gt; 50)</dd>
+        <dt>Bearish Signal</dt><dd>Below 50% (altseason)</dd>
+        <dt>Weight</dt><dd>25% of Layer 3 score (1 of 4)</dd></dl></div>
+      <div class="help-item"><div class="help-name">▪ Stablecoin Supply Ratio (SSR)</div><dl>
+        <dt>What It Is</dt><dd>BTC market cap divided by the total stablecoin market cap. A low SSR means a lot of "dry powder" relative to BTC.</dd>
+        <dt>Bullish Signal</dt><dd>SSR below 8 (score steps: &lt; 7 / &lt; 10 / &lt; 13)</dd>
+        <dt>Bearish Signal</dt><dd>SSR 12 or above (distribution)</dd>
+        <dt>Weight</dt><dd>25% of Layer 3 score (1 of 4)</dd></dl></div>
+      <div class="help-item"><div class="help-name">▪ Funding Rates (Open Interest not tracked)</div><dl>
+        <dt>What It Is</dt><dd>The 8-hour fee between long and short traders on Binance's BTCUSDT perpetual futures. Positive = longs pay (crowded longs); negative = shorts pay. Open interest is not part of this dashboard.</dd>
+        <dt>Bullish Signal</dt><dd>Below −0.005% per 8h, shorts crowded / squeeze setup (score steps: &lt; −0.02 / &lt; 0 / &lt; 0.02%)</dd>
+        <dt>Bearish Signal</dt><dd>0.01% per 8h or above, crowded longs</dd>
+        <dt>Weight</dt><dd>25% of Layer 3 score (1 of 4)</dd></dl></div>
+    </div>
+  </div>
+
+  <!-- TAB 3 — References & Links -->
+  <div class="tab-content" id="panel-refs" role="tabpanel" aria-labelledby="tab-refs" tabindex="0" hidden>
+    <h2 class="tab-title">References &amp; Links</h2>
+    <div class="ref-grid">
+      <div class="ref-group"><h3>Macro Liquidity (L1)</h3><ul>
+        <li><a href="https://fred.stlouisfed.org/series/M2SL" target="_blank" rel="noopener">FRED M2SL</a> — US Money Supply</li>
+        <li><a href="https://fred.stlouisfed.org/series/RRPONTSYD" target="_blank" rel="noopener">FRED RRPONTSYD</a> — Reverse Repo</li>
+        <li><a href="https://fred.stlouisfed.org/series/WDTGAL" target="_blank" rel="noopener">FRED WDTGAL</a> — Treasury General Account</li>
+        <li><a href="https://fred.stlouisfed.org/series/DFII10" target="_blank" rel="noopener">FRED DFII10</a> — 10Y Real Yield</li>
+        <li><a href="https://fred.stlouisfed.org/series/WALCL" target="_blank" rel="noopener">FRED WALCL</a> — Fed Balance Sheet</li>
+      </ul></div>
+      <div class="ref-group"><h3>Market Pressure (L2)</h3><ul>
+        <li><a href="https://www.tradingview.com/symbols/TVC-DXY/" target="_blank" rel="noopener">TradingView DXY</a> — US Dollar Index</li>
+        <li><a href="https://www.tradingview.com/symbols/TVC-US10Y/" target="_blank" rel="noopener">TradingView US10Y</a> — 10-Year Treasury</li>
+        <li><a href="https://www.tradingview.com/symbols/TVC-US02Y/" target="_blank" rel="noopener">TradingView US02Y</a> — 2-Year Treasury</li>
+        <li><a href="https://www.tradingview.com/symbols/NASDAQ-QQQ/" target="_blank" rel="noopener">TradingView QQQ</a> — Nasdaq 100</li>
+      </ul></div>
+      <div class="ref-group"><h3>Crypto Internals (L3)</h3><ul>
+        <li><a href="https://www.bitcoinmagazinepro.com/charts/mvrv-zscore/" target="_blank" rel="noopener">MVRV Z-Score</a> (Bitcoin Magazine Pro)</li>
+        <li><a href="https://cryptoquant.com/asset/btc/chart/market-indicator/stablecoin-supply-ratio-ssr" target="_blank" rel="noopener">Stablecoin Supply Ratio</a> (CryptoQuant)</li>
+        <li><a href="https://coinalyze.net/bitcoin/open-interest/" target="_blank" rel="noopener">Open Interest &amp; Funding</a> (Coinalyze)</li>
+        <li><a href="https://www.coingecko.com/en/global-charts" target="_blank" rel="noopener">CoinGecko</a> — Market cap &amp; dominance</li>
+        <li><a href="https://www.blockchaincenter.net/en/altcoin-season-index/" target="_blank" rel="noopener">Altcoin Season Index</a> (Blockchaincenter, not CoinGecko)</li>
+      </ul></div>
+      <div class="ref-group"><h3>Cycle &amp; Technical</h3><ul>
+        <li><a href="https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html" target="_blank" rel="noopener">CME FedWatch Tool</a></li>
+        <li><a href="https://chartinspect.com/charts/pi-cycle-top" target="_blank" rel="noopener">Pi Cycle Top Indicator</a></li>
+        <li><a href="https://chartinspect.com/charts/profit-loss" target="_blank" rel="noopener">BTC Profit/Loss Chart</a></li>
+      </ul></div>
+      <div class="ref-group"><h3>Key Researchers &amp; Frameworks</h3><ul>
+        <li><a href="https://www.lynalden.com/" target="_blank" rel="noopener">Lyn Alden</a> — macro, liquidity &amp; fiscal research</li>
+        <li><a href="https://www.realvision.com/" target="_blank" rel="noopener">Raoul Pal (Real Vision)</a> — global liquidity framework (GLI)</li>
+        <li><a href="https://k33.com/research" target="_blank" rel="noopener">K33 Research</a> — derivatives, funding &amp; leverage analysis</li>
+        <li><a href="https://planbtc.com/" target="_blank" rel="noopener">PlanB</a> — Stock-to-Flow model (widely debated)</li>
+        <li><a href="https://insights.glassnode.com/" target="_blank" rel="noopener">Glassnode</a> — on-chain metrics &amp; distribution</li>
+      </ul></div>
+    </div>
+    <p class="muted">External links open in a new tab. These are references for further reading; except for FRED and CoinGecko, the dashboard does not take its data from them.</p>
+  </div>
+  <div class="info-foot">Not financial advice · Educational framework only · Data from FRED, Binance, CoinGecko, Yahoo Finance</div>
+</section>
+<script>
+/* Info tabs: vanilla JS. Click a tab to open it; click the open tab again to close it.
+   Arrow keys / Home / End move between tabs. Independent of the data scripts. */
+(function () {
+  const tabs = Array.from(document.querySelectorAll('#infoTabs .info-tab'));
+  const panel = t => document.getElementById(t.getAttribute('aria-controls'));
+  function show(tab) {
+    tabs.forEach(t => {
+      const on = t === tab;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on || (!tab && t === tabs[0]) ? 0 : -1;
+      const p = panel(t);
+      p.classList.toggle('active', on);
+      p.hidden = !on;
+    });
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => show(t.classList.contains('active') ? null : t));
+    t.addEventListener('keydown', e => {
+      const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+      if (next === undefined) return;
+      e.preventDefault();
+      const target = tabs[(next + tabs.length) % tabs.length];
+      target.focus();
+      show(target);
+    });
+  });
+})();
+</script>
+
+<div class="footer">
+  <span>Sources: Binance (BTC/USDT, funding) · CoinGecko (dominance, stablecoins, ATH) · FRED (macro, latest published) · Yahoo Finance (DXY, QQQ, ^TNX) · details: DATA_SOURCES.md</span>
+  <span>BTC Macro Dashboard</span>
+</div>
+</div>
+
+<!-- Chart.js 4.4.1 (MIT), local copy: sha512 matches the cdnjs SRI, so charts also work offline -->
+<script src="vendor/chart.umd.4.4.1.js"></script>
+<script id="l1-core">
+/* ============================================================
+   L1 CORE: pure data logic for Layer 1 (no DOM, no network).
+   tests/l1_core.test.mjs extracts and runs this block; keep it self-contained.
+   Methodology: DATA_SOURCES.md
+   ============================================================ */
+(function (root) {
+'use strict';
+
+const SERIES = {
+  M2SL:      { name:'US M2 money stock', freq:'monthly', release:'H.6 Money Stock Measures', publisher:'Board of Governors of the Federal Reserve System',
+               native:'Billions of US$, seasonally adjusted, monthly', display:'$T', factor:1/1000, conversion:'÷ 1,000 (billions → trillions)', min:1000, max:100000 },
+  WALCL:     { name:'Fed total assets (Wednesday level)', freq:'weekly', release:'H.4.1 Factors Affecting Reserve Balances', publisher:'Board of Governors of the Federal Reserve System',
+               native:'Millions of US$, Wednesday level, NSA', display:'$T', factor:1/1e6, conversion:'÷ 1,000,000 (millions → trillions)', min:1e5, max:5e7 },
+  WDTGAL:    { name:'Treasury General Account (Wednesday level)', freq:'weekly', release:'H.4.1 Factors Affecting Reserve Balances', publisher:'Board of Governors of the Federal Reserve System',
+               native:'Millions of US$, Wednesday level, NSA', display:'$B', factor:1/1000, conversion:'÷ 1,000 (millions → billions)', min:0, max:5e6 },
+  RRPONTSYD: { name:'Overnight reverse repo (Treasury securities sold)', freq:'daily', release:'Temporary Open Market Operations', publisher:'Federal Reserve Bank of New York',
+               native:'Billions of US$, daily, NSA', display:'$B', factor:1, conversion:'none (already billions)', min:0, max:10000, sameDay:true },
+  DFII10:    { name:'10-year TIPS real yield', freq:'daily', release:'H.15 Selected Interest Rates', publisher:'Board of Governors of the Federal Reserve System',
+               native:'Percent, daily, NSA', display:'%', factor:1, conversion:'none (percent)', min:-10, max:20 },
+  DGS10:     { name:'10-year Treasury yield', freq:'daily', release:'H.15 Selected Interest Rates', publisher:'Board of Governors of the Federal Reserve System',
+               native:'Percent, daily, NSA', display:'%', factor:1, conversion:'none (percent)', min:-5, max:25 },
+  DGS2:      { name:'2-year Treasury yield', freq:'daily', release:'H.15 Selected Interest Rates', publisher:'Board of Governors of the Federal Reserve System',
+               native:'Percent, daily, NSA', display:'%', factor:1, conversion:'none (percent)', min:-5, max:25 }
+};
+Object.keys(SERIES).forEach(id => { SERIES[id].id = id; SERIES[id].url = 'https://fred.stlouisfed.org/series/' + id; });
+
+/* ---------- dates (all YYYY-MM-DD strings, UTC arithmetic) ---------- */
+const DAY = 86400000;
+const toMs = s => Date.parse(s + 'T00:00:00Z');
+const fromMs = ms => new Date(ms).toISOString().slice(0, 10);
+const addDays = (s, n) => fromMs(toMs(s) + n * DAY);
+const weekday = s => new Date(s + 'T00:00:00Z').getUTCDay();
+const isIsoDate = s => /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(toMs(s)) && fromMs(toMs(s)) === s;
+const addMonths = (key, n) => { const [y, m] = key.split('-').map(Number); const t = y * 12 + (m - 1) + n; return `${Math.floor(t / 12)}-${String(t % 12 + 1).padStart(2, '0')}`; };
+const monthEnd = key => { const [y, m] = key.split('-').map(Number); return fromMs(Date.UTC(y, m, 0)); };
+const monthLabel = key => { const [y, m] = key.split('-').map(Number); return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-US', { month:'short', year:'numeric', timeZone:'UTC' }); };
+
+// US Eastern wall clock as a sortable "YYYY-MM-DD HH:MM" stamp.
+function etStamp(nowMs) {
+  const f = new Intl.DateTimeFormat('en-CA', { timeZone:'America/New_York', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hourCycle:'h23' });
+  const p = Object.fromEntries(f.formatToParts(new Date(nowMs)).map(x => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}`;
+}
+
+/* ---------- Federal Reserve holidays ----------
+   Sunday holidays are observed Monday. Saturday holidays are NOT observed on Friday
+   (Federal Reserve Banks stay open that Friday). */
+function nthWeekday(y, month0, wd, n) {
+  if (n > 0) { const first = new Date(Date.UTC(y, month0, 1)).getUTCDay(); return fromMs(Date.UTC(y, month0, 1 + ((wd - first + 7) % 7) + (n - 1) * 7)); }
+  const last = Date.UTC(y, month0 + 1, 0); return fromMs(last - ((new Date(last).getUTCDay() - wd + 7) % 7) * DAY);
+}
+const holidayCache = {};
+function fedHolidays(y) {
+  if (holidayCache[y]) return holidayCache[y];
+  const fixed = ['01-01', '06-19', '07-04', '11-11', '12-25'].map(md => `${y}-${md}`)
+    .map(s => weekday(s) === 0 ? addDays(s, 1) : s).filter(s => weekday(s) !== 6);
+  const floating = [nthWeekday(y, 0, 1, 3), nthWeekday(y, 1, 1, 3), nthWeekday(y, 4, 1, -1), nthWeekday(y, 8, 1, 1), nthWeekday(y, 9, 1, 2), nthWeekday(y, 10, 4, 4)];
+  return (holidayCache[y] = new Set([...fixed, ...floating]));
+}
+const isBusinessDay = s => { const w = weekday(s); return w !== 0 && w !== 6 && !fedHolidays(Number(s.slice(0, 4))).has(s); };
+const nextBusinessDay = s => { let d = addDays(s, 1); while (!isBusinessDay(d)) d = addDays(d, 1); return d; };
+
+/* ---------- publication schedule ----------
+   dueStamp(id, period) = ET moment by which the observation should be on FRED,
+   including a grace margin for normal release-time variation. */
+function dueStamp(id, period) {
+  const f = SERIES[id].freq;
+  if (f === 'monthly') {                         // H.6: around the 4th Tuesday of the following month; +7 days grace
+    const next = addMonths(period, 1); const [y, m] = next.split('-').map(Number);
+    return addDays(nthWeekday(y, m - 1, 2, 4), 7) + ' 09:00';
+  }
+  if (f === 'weekly') return nextBusinessDay(nextBusinessDay(period)) + ' 09:00';   // H.4.1: Thursday 16:30 ET; +1 business day grace
+  if (SERIES[id].sameDay) return nextBusinessDay(period) + ' 12:00';               // NY Fed RRP: same afternoon; FRED by next day
+  return nextBusinessDay(nextBusinessDay(period)) + ' 09:00';                       // H.15: next business day ~16:15 ET; +grace
+}
+// Latest period whose observation is due by `nowMs` (date for daily/weekly, YYYY-MM for monthly).
+function expectedLatest(id, nowMs) {
+  const now = etStamp(nowMs), today = now.slice(0, 10), f = SERIES[id].freq;
+  if (f === 'monthly') { let k = addMonths(today.slice(0, 7), -1); while (dueStamp(id, k) > now) k = addMonths(k, -1); return k; }
+  let d = today;
+  if (f === 'weekly') { d = addDays(d, -((weekday(d) - 3 + 7) % 7)); while (dueStamp(id, d) > now) d = addDays(d, -7); return d; }
+  while (!isBusinessDay(d) || dueStamp(id, d) > now) d = addDays(d, -1);
+  return d;
+}
+
+/* ---------- CSV parsing + validation ---------- */
+function parseFredCsv(text, id) {
+  const spec = SERIES[id];
+  if (!spec) throw new Error(`unknown series ${id}`);
+  if (typeof text !== 'string' || !text.trim()) throw new Error('empty response');
+  const lines = text.replace(/^﻿/, '').trim().split(/\r?\n/);
+  const header = lines[0].trim();
+  if (header !== `observation_date,${id}` && header !== `DATE,${id}`) throw new Error(`unexpected CSV header "${header.slice(0, 60)}"`);
+  const rows = [], blanks = []; let prev = '';
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim(); if (!line) continue;
+    const parts = line.split(',');
+    if (parts.length !== 2) throw new Error(`line ${i + 1}: expected 2 columns`);
+    const [date, raw] = parts;
+    if (!isIsoDate(date)) throw new Error(`line ${i + 1}: invalid date "${date}"`);
+    if (date === prev) throw new Error(`duplicate observation ${date}`);
+    if (date < prev) throw new Error(`out-of-order observation ${date}`);
+    prev = date;
+    if (spec.freq === 'monthly' && date.slice(8) !== '01') throw new Error(`${date}: monthly observation not dated the 1st`);
+    if (spec.freq === 'weekly' && weekday(date) !== 3) throw new Error(`${date}: weekly observation not a Wednesday`);
+    if (raw === '' || raw === '.') { blanks.push(date); continue; }          // FRED missing-value markers
+    if (!/^-?\d+(\.\d+)?$/.test(raw)) throw new Error(`line ${i + 1}: non-numeric value "${raw}"`);
+    const v = Number(raw);
+    if (v < spec.min || v > spec.max) throw new Error(`${date}: ${v} outside plausible range for ${id} (${spec.native})`);
+    rows.push([date, v]);
+  }
+  if (!rows.length) throw new Error('no valid observations');
+  return { rows, blanks, lastRowDate: prev };
+}
+
+function makeIndex(parsed) {
+  return { byDate: new Map(parsed.rows), dates: parsed.rows.map(r => r[0]), blanks: new Set(parsed.blanks), lastRowDate: parsed.lastRowDate };
+}
+const valAt = (ix, d) => (ix && ix.byDate.has(d) ? ix.byDate.get(d) : null);   // 0 is a value, not missing
+function lastInRange(ix, from, to) {
+  if (!ix) return null;
+  let lo = 0, hi = ix.dates.length - 1, ans = -1;
+  while (lo <= hi) { const mid = (lo + hi) >> 1; if (ix.dates[mid] <= to) { ans = mid; lo = mid + 1; } else hi = mid - 1; }
+  if (ans < 0 || ix.dates[ans] < from) return null;
+  return { date: ix.dates[ans], value: ix.byDate.get(ix.dates[ans]) };
+}
+const lastObs = ix => (ix && ix.dates.length ? { date: ix.dates[ix.dates.length - 1], value: ix.byDate.get(ix.dates[ix.dates.length - 1]) } : null);
+
+// Why a single observation is missing.
+function missingReason(ds, id, date, nowStamp) {
+  const ix = ds[id];
+  if (!ix) return { state:'unavailable', reason:`${id} unavailable (request failed and no valid cache)` };
+  if (ix.blanks.has(date)) return { state:'unavailable', reason:`${id} has no observation on ${date} (FRED blank; ${isBusinessDay(date) ? 'not reported' : 'non-business day / holiday'})` };
+  const period = SERIES[id].freq === 'monthly' ? date.slice(0, 7) : date;
+  if (date > ix.lastRowDate && dueStamp(id, period) > nowStamp) return { state:'pending', reason:`${id} for ${SERIES[id].freq === 'monthly' ? monthLabel(period) : date} not yet published (due by ${dueStamp(id, period)} ET)` };
+  if (date > ix.lastRowDate) return { state:'unavailable', reason:`${id} for ${date} should be published but is not in the retrieved data (stale)` };
+  return { state:'unavailable', reason:`${id} has no observation on ${date}` };
+}
+
+/* ---------- derived metrics ---------- */
+const NLM_LOOKBACK_DAYS = 56;   // 8 weeks (existing project definition)
+const QOQ_LOOKBACK_DAYS = 91;   // 13 weeks
+const M2_TREND_MONTHS = 3, M2_FLAT_BAND = 0.001;
+
+// Net liquidity ($T) on one Wednesday; all three inputs must exist for that same date.
+function netLiquidity(ds, d, nowStamp) {
+  const w = valAt(ds.WALCL, d), t = valAt(ds.WDTGAL, d), r = valAt(ds.RRPONTSYD, d);
+  const missing = [];
+  if (w === null) missing.push(missingReason(ds, 'WALCL', d, nowStamp));
+  if (t === null) missing.push(missingReason(ds, 'WDTGAL', d, nowStamp));
+  if (r === null) missing.push(missingReason(ds, 'RRPONTSYD', d, nowStamp));
+  if (missing.length) return { value:null, date:d, missing };
+  return { value: w / 1e6 - t / 1e6 - r / 1000, date:d, components:{ WALCL:w, WDTGAL:t, RRPONTSYD:r } };
+}
+function nlmAt(ds, d, nowStamp) {
+  const end = netLiquidity(ds, d, nowStamp), start = netLiquidity(ds, addDays(d, -NLM_LOOKBACK_DAYS), nowStamp);
+  if (end.value === null || start.value === null) {
+    const miss = [...(end.missing || []), ...(start.missing || [])];
+    return { value:null, date:d, start, end, state: miss.some(m => m.state === 'pending') ? 'pending' : 'unavailable', reason: miss.map(m => m.reason).join('; ') };
+  }
+  return { value: end.value - start.value, date:d, start, end };
+}
+// Latest NLM on or before `to` (and not before `from`); records skipped Wednesdays.
+function nlmLatest(ds, from, to, nowStamp) {
+  const wal = ds.WALCL; if (!wal) return { value:null, state:'unavailable', reason: missingReason(ds, 'WALCL', to, nowStamp).reason };
+  const weds = wal.dates.filter(d => d >= from && d <= to);
+  const skipped = [];
+  for (let i = weds.length - 1; i >= 0; i--) {
+    const r = nlmAt(ds, weds[i], nowStamp);
+    if (r.value !== null) return Object.assign(r, { skipped });
+    skipped.push({ date: weds[i], reason: r.reason });
+  }
+  return { value:null, state:'unavailable', reason: skipped.length ? skipped.map(s => `${s.date}: ${s.reason}`).join(' | ') : `no WALCL observation between ${from} and ${to}`, skipped };
+}
+function m2Cell(ds, monthKey, nowStamp) {
+  const d = monthKey + '-01', v = valAt(ds.M2SL, d);
+  if (v === null) { const m = missingReason(ds, 'M2SL', d, nowStamp); return { level:{ value:null, ...m }, trend:{ value:null, ...m } }; }
+  const priorKey = addMonths(monthKey, -M2_TREND_MONTHS), pv = valAt(ds.M2SL, priorKey + '-01');
+  const level = { value: v / 1000, raw: v, date: d, series:'M2SL' };
+  if (pv === null) return { level, trend:{ value:null, ...missingReason(ds, 'M2SL', priorKey + '-01', nowStamp) } };
+  const pct = v / pv - 1;
+  return { level, trend:{ value: pct, dir: pct > M2_FLAT_BAND ? 1 : pct < -M2_FLAT_BAND ? -1 : 0, date: d, base:{ date: priorKey + '-01', raw: pv }, raw: v } };
+}
+function seriesCell(ds, id, obs, missingDate, nowStamp) {
+  if (!obs) return { value:null, ...missingReason(ds, id, missingDate, nowStamp), series:id };
+  return { value: obs.value * SERIES[id].factor, raw: obs.value, date: obs.date, series:id };
+}
+function walclCell(ds, obs, missingDate, nowStamp) {
+  const c = seriesCell(ds, 'WALCL', obs, missingDate, nowStamp);
+  if (c.value === null) return c;
+  const baseDate = addDays(obs.date, -QOQ_LOOKBACK_DAYS), base = valAt(ds.WALCL, baseDate);
+  c.base = { date: baseDate, raw: base };
+  c.qoq = base === null ? null : obs.value / base - 1;
+  if (base === null) c.qoqReason = missingReason(ds, 'WALCL', baseDate, nowStamp).reason;
+  return c;
+}
+
+/* ---------- classification + scoring ---------- */
+const RULES = {
+  m2Trend: { label:'M2 trend (3-month % change)', bull:'> +0.1% (rising)', bear:'< −0.1% (falling)', test: c => c.dir },
+  nlm:     { label:'NLM 8-week Δ', bull:'> +0.1T', bear:'< −0.1T', test: c => c.value > 0.1 ? 1 : c.value < -0.1 ? -1 : 0 },
+  rrp:     { label:'RRP', bull:'< $500B', bear:'> $1,000B', test: c => c.value < 500 ? 1 : c.value > 1000 ? -1 : 0 },
+  tga:     { label:'TGA', bull:'< $600B', bear:'> $800B', test: c => c.value < 600 ? 1 : c.value > 800 ? -1 : 0 },
+  ry:      { label:'10Y real yield', bull:'< 1.5%', bear:'> 2.5%', test: c => c.value < 1.5 ? 1 : c.value > 2.5 ? -1 : 0 },
+  walcl:   { label:'WALCL 13-week change', bull:'> 0% (rising)', bear:'< −3% QoQ', test: c => c.qoq > 0 ? 1 : c.qoq < -0.03 ? -1 : 0 }
+};
+const METRICS = Object.keys(RULES);
+function classify(metric, cell) {
+  if (!cell) return 'na';
+  if (metric === 'm2Trend') { if (cell.dir === undefined || cell.dir === null) return 'na'; }
+  else if (metric === 'walcl') { if (cell.qoq === null || cell.qoq === undefined || !Number.isFinite(cell.qoq)) return 'na'; }
+  else if (cell.value === null || cell.value === undefined || !Number.isFinite(cell.value)) return 'na';
+  const t = RULES[metric].test(cell); return t > 0 ? 'bull' : t < 0 ? 'bear' : 'neut';
+}
+// L1 signal: Bullish if ≥4 of 6 bullish; Bearish if ≥3 bearish; Neutral otherwise,
+// but only when missing inputs could not change that outcome ('insufficient').
+function signalFrom(classes) {
+  const v = Object.values(classes);
+  const bull = v.filter(x => x === 'bull').length, bear = v.filter(x => x === 'bear').length, na = v.filter(x => x === 'na').length;
+  let signal;
+  if (bull >= 4) signal = 'bull'; else if (bear >= 3) signal = 'bear';
+  else if (bull + na >= 4 || bear + na >= 3) signal = 'insufficient'; else signal = 'neut';
+  return { signal, bull, bear, neut: v.length - bull - bear - na, na, known: v.length - na, total: v.length };
+}
+// L1 score 0–10: bullish = 2, neutral = 1, bearish = 0 points, averaged over available inputs; needs ≥4 of 6.
+const L1_MIN_INPUTS = 4;
+function scoreFrom(classes) {
+  const v = Object.values(classes).filter(x => x !== 'na');
+  if (v.length < L1_MIN_INPUTS) return { score:null, known: v.length, total: Object.keys(classes).length };
+  const pts = v.reduce((s, x) => s + (x === 'bull' ? 2 : x === 'neut' ? 1 : 0), 0);
+  return { score: pts / (2 * v.length) * 10, known: v.length, total: Object.keys(classes).length };
+}
+function finalizeRow(row) {
+  row.classes = {}; METRICS.forEach(m => { row.classes[m] = classify(m, row.cells[m]); });
+  row.sig = signalFrom(row.classes); row.score = scoreFrom(row.classes);
+  return row;
+}
+
+/* ---------- table ---------- */
+function buildDataset(parsedById) {
+  const ds = {}; Object.entries(parsedById).forEach(([id, p]) => { if (p) ds[id] = makeIndex(p); }); return ds;
+}
+function monthRow(ds, key, nowStamp) {
+  const from = key + '-01', to = monthEnd(key), m2 = m2Cell(ds, key, nowStamp);
+  return finalizeRow({ key, label: monthLabel(key), current:false, cells: {
+    m2Level: m2.level, m2Trend: m2.trend,
+    nlm: nlmLatest(ds, from, to, nowStamp),
+    rrp: seriesCell(ds, 'RRPONTSYD', lastInRange(ds.RRPONTSYD, from, to), to, nowStamp),
+    tga: seriesCell(ds, 'WDTGAL', lastInRange(ds.WDTGAL, from, to), to, nowStamp),
+    ry:  seriesCell(ds, 'DFII10', lastInRange(ds.DFII10, from, to), to, nowStamp),
+    walcl: walclCell(ds, lastInRange(ds.WALCL, from, to), to, nowStamp)
+  } });
+}
+// Current (partial) month: each metric's latest published observation, with its own date.
+function currentRow(ds, key, nowStamp) {
+  const today = nowStamp.slice(0, 10), m2Last = lastObs(ds.M2SL);
+  const m2 = m2Last ? m2Cell(ds, m2Last.date.slice(0, 7), nowStamp) : m2Cell(ds, key, nowStamp);
+  return finalizeRow({ key, label: `${monthLabel(key)} (Current)`, current:true, cells: {
+    m2Level: m2.level, m2Trend: m2.trend,
+    nlm: nlmLatest(ds, addDays(today, -120), today, nowStamp),
+    rrp: seriesCell(ds, 'RRPONTSYD', lastObs(ds.RRPONTSYD), today, nowStamp),
+    tga: seriesCell(ds, 'WDTGAL', lastObs(ds.WDTGAL), today, nowStamp),
+    ry:  seriesCell(ds, 'DFII10', lastObs(ds.DFII10), today, nowStamp),
+    walcl: walclCell(ds, lastObs(ds.WALCL), today, nowStamp)
+  } });
+}
+// 12 completed calendar months + the current partial month.
+function buildTable(ds, nowMs) {
+  const nowStamp = etStamp(nowMs), cur = nowStamp.slice(0, 7);
+  const rows = [];
+  for (let i = 12; i >= 1; i--) rows.push(monthRow(ds, addMonths(cur, -i), nowStamp));
+  rows.push(currentRow(ds, cur, nowStamp));
+  return rows;
+}
+// Earliest date to request so every lookback for the oldest row is covered.
+function historyStart(nowMs) { return addMonths(etStamp(nowMs).slice(0, 7), -12 - M2_TREND_MONTHS - 2) + '-01'; }
+
+// Series freshness: 'latest' | 'cached' | 'stale' | 'unavailable'
+function seriesFreshness(id, entry, nowMs) {
+  if (!entry || !entry.parsed) return { state:'unavailable', expected: expectedLatest(id, nowMs) };
+  const expected = expectedLatest(id, nowMs), last = entry.parsed.lastRowDate;
+  const have = SERIES[id].freq === 'monthly' ? last.slice(0, 7) : last;
+  if (have < expected) return { state:'stale', expected, have };
+  return { state: entry.fromCache ? 'cached' : 'latest', expected, have };
+}
+
+root.L1Core = { SERIES, RULES, METRICS, NLM_LOOKBACK_DAYS, QOQ_LOOKBACK_DAYS, M2_TREND_MONTHS, L1_MIN_INPUTS,
+  toMs, addDays, addMonths, monthEnd, monthLabel, weekday, isBusinessDay, fedHolidays, nextBusinessDay, etStamp,
+  dueStamp, expectedLatest, parseFredCsv, buildDataset, valAt, lastInRange, netLiquidity, nlmAt, nlmLatest,
+  classify, signalFrom, scoreFrom, finalizeRow, monthRow, currentRow, buildTable, historyStart, seriesFreshness };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script id="sources-core">
+/* ============================================================
+   SOURCES CORE: validation + parsing for market/crypto feeds (no DOM, no network).
+   tests/sources_core.test.mjs extracts and runs this block. Inventory: DATA_SOURCES.md
+   ============================================================ */
+(function (root) {
+'use strict';
+const MIN = 60e3, HOUR = 3600e3, DAY = 86400e3;
+// every = refresh interval; staleAfter = observation age beyond which the value is Stale.
+const SRC = {
+  'binance-ticker':  { group:'Binance', label:'BTC/USDT spot 24h ticker', instrument:'BTCUSDT (spot)', link:'https://www.binance.com/en/trade/BTC_USDT?type=spot',
+                       docs:'https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints', kind:'market', every: MIN, staleAfter: 15 * MIN,
+                       direct:'https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT' },
+  'binance-klines':  { group:'Binance', label:'BTC/USDT daily candles (180)', instrument:'BTCUSDT (spot) 1d klines', link:'https://www.binance.com/en/trade/BTC_USDT?type=spot',
+                       docs:'https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints', kind:'market', every: 15 * MIN, staleAfter: 2 * DAY,
+                       direct:'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=180' },
+  'binance-premium': { group:'Binance', label:'BTCUSDT perpetual funding rate (8h interval)', instrument:'BTCUSDT USDⓈ-M perpetual', link:'https://www.binance.com/en/futures/funding-history/perpetual/real-time-funding-rate',
+                       docs:'https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price', kind:'market', every: 5 * MIN, staleAfter: 30 * MIN,
+                       direct:'https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT' },
+  'binance-funding': { group:'Binance', label:'BTCUSDT settled funding history (90 × 8h)', instrument:'BTCUSDT USDⓈ-M perpetual', link:'https://www.binance.com/en/futures/funding-history/perpetual/funding-fee-history',
+                       docs:'https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History', kind:'market', every: HOUR, staleAfter: 17 * HOUR,
+                       direct:'https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=90' },
+  'coingecko-global':      { group:'CoinGecko', label:'Global crypto market cap & BTC dominance', instrument:'/global', link:'https://www.coingecko.com/en/global-charts',
+                             docs:'https://docs.coingecko.com/v3.0.1/reference/crypto-global', kind:'market', every: 10 * MIN, staleAfter: 3 * HOUR,
+                             direct:'https://api.coingecko.com/api/v3/global' },
+  'coingecko-stablecoins': { group:'CoinGecko', label:'Stablecoin market caps (top 250, USD)', instrument:'category=stablecoins', link:'https://www.coingecko.com/en/categories/stablecoins',
+                             docs:'https://docs.coingecko.com/v3.0.1/reference/coins-markets', kind:'market', every: 30 * MIN, staleAfter: 6 * HOUR,
+                             direct:'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&category=stablecoins&order=market_cap_desc&per_page=250&page=1' },
+  'coingecko-bitcoin':     { group:'CoinGecko', label:'Bitcoin all-time high (USD)', instrument:'ids=bitcoin', link:'https://www.coingecko.com/en/coins/bitcoin',
+                             docs:'https://docs.coingecko.com/v3.0.1/reference/coins-markets', kind:'market', every: 30 * MIN, staleAfter: 6 * HOUR,
+                             direct:'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin' },
+  'yahoo-dxy': { group:'Yahoo', label:'ICE US Dollar Index', instrument:'DX-Y.NYB', symbol:'DX-Y.NYB', link:'https://finance.yahoo.com/quote/DX-Y.NYB/',
+                 docs:'unofficial Yahoo Finance chart endpoint (no published API terms)', kind:'quote', every: 5 * MIN, staleAfter: 4 * DAY, direct:null },
+  'yahoo-qqq': { group:'Yahoo', label:'Invesco QQQ Trust (USD)', instrument:'QQQ', symbol:'QQQ', link:'https://finance.yahoo.com/quote/QQQ/',
+                 docs:'unofficial Yahoo Finance chart endpoint (no published API terms)', kind:'quote', every: 5 * MIN, staleAfter: 4 * DAY, direct:null },
+  'yahoo-tnx': { group:'Yahoo', label:'CBOE 10-Year Treasury yield index (%)', instrument:'^TNX', symbol:'^TNX', link:'https://finance.yahoo.com/quote/%5ETNX/',
+                 docs:'unofficial Yahoo Finance chart endpoint (no published API terms)', kind:'quote', every: 5 * MIN, staleAfter: 4 * DAY, direct:null }
+};
+
+const num = (v, what) => { const n = typeof v === 'string' ? Number(v) : v; if (typeof n !== 'number' || !Number.isFinite(n)) throw new Error(`${what} is not a finite number`); return n; };
+const pos = (v, what) => { const n = num(v, what); if (n <= 0) throw new Error(`${what} must be positive`); return n; };
+const msTime = (v, what) => { const n = num(v, what); if (n < 1.2e12 || n > 4.1e12) throw new Error(`${what} is not a plausible millisecond timestamp`); return n; };
+const utcDate = ms => new Date(ms).toISOString().slice(0, 10);
+function exchangeDate(sec, gmtoffset) { return new Date((sec + (gmtoffset || 0)) * 1000).toISOString().slice(0, 10); }
+
+const PARSE = {
+  'binance-ticker'(j) {
+    if (!j || j.symbol !== 'BTCUSDT') throw new Error('ticker is not BTCUSDT');
+    return { price: pos(j.lastPrice, 'lastPrice'), changePct: num(j.priceChangePercent, 'priceChangePercent'),
+             high: pos(j.highPrice, 'highPrice'), low: pos(j.lowPrice, 'lowPrice'), obsTime: msTime(j.closeTime, 'closeTime') };
+  },
+  'binance-klines'(j) {
+    if (!Array.isArray(j) || j.length < 30) throw new Error('expected at least 30 daily candles');
+    let prev = 0;
+    const rows = j.map((k, i) => {
+      if (!Array.isArray(k) || k.length < 7) throw new Error(`candle ${i} malformed`);
+      const open = msTime(k[0], 'open time'); if (open <= prev) throw new Error('candles out of order'); prev = open;
+      return { date: utcDate(open), high: pos(k[2], 'high'), low: pos(k[3], 'low'), close: pos(k[4], 'close'), closeTime: msTime(k[6], 'close time') };
+    });
+    return { rows, obsTime: Math.min(rows[rows.length - 1].closeTime, Date.now()) };
+  },
+  'binance-premium'(j) {
+    if (!j || j.symbol !== 'BTCUSDT') throw new Error('premium index is not BTCUSDT');
+    const rate = num(j.lastFundingRate, 'lastFundingRate');
+    if (Math.abs(rate) > 0.05) throw new Error('funding rate outside ±5%');
+    return { rate, markPrice: pos(j.markPrice, 'markPrice'), nextFundingTime: msTime(j.nextFundingTime, 'nextFundingTime'), obsTime: msTime(j.time, 'time') };
+  },
+  'binance-funding'(j) {
+    if (!Array.isArray(j) || !j.length) throw new Error('empty funding history');
+    let prev = 0;
+    const rows = j.map((r, i) => {
+      if (!r || r.symbol !== 'BTCUSDT') throw new Error(`funding row ${i} is not BTCUSDT`);
+      const t = msTime(r.fundingTime, 'fundingTime'); if (t <= prev) throw new Error('funding history out of order'); prev = t;
+      const rate = num(r.fundingRate, 'fundingRate'); if (Math.abs(rate) > 0.05) throw new Error('funding rate outside ±5%');
+      return { time: t, rate };
+    });
+    return { rows, obsTime: rows[rows.length - 1].time };
+  },
+  'coingecko-global'(j) {
+    const d = j && j.data; if (!d) throw new Error('missing data object');
+    const btcd = num(d.market_cap_percentage && d.market_cap_percentage.btc, 'BTC dominance');
+    if (btcd <= 0 || btcd >= 100) throw new Error('BTC dominance outside 0–100%');
+    return { btcd, totalMcapUsd: pos(d.total_market_cap && d.total_market_cap.usd, 'total market cap'), obsTime: num(d.updated_at, 'updated_at') * 1000 };
+  },
+  'coingecko-stablecoins'(j) {
+    if (!Array.isArray(j) || j.length < 10) throw new Error('expected a list of stablecoins');
+    let sum = 0, counted = 0, latest = 0;
+    j.forEach(c => { if (c && Number.isFinite(c.market_cap) && c.market_cap > 0) { sum += c.market_cap; counted++; } const t = Date.parse(c && c.last_updated); if (t > latest) latest = t; });
+    if (!(sum > 0)) throw new Error('no stablecoin market caps');
+    return { stableMcapUsd: sum, counted, listed: j.length, obsTime: latest || Date.now() };
+  },
+  'coingecko-bitcoin'(j) {
+    const b = Array.isArray(j) && j[0]; if (!b || b.id !== 'bitcoin') throw new Error('not the bitcoin record');
+    const athDate = Date.parse(b.ath_date); if (!Number.isFinite(athDate)) throw new Error('invalid ath_date');
+    return { ath: pos(b.ath, 'ath'), athDate: new Date(athDate).toISOString().slice(0, 10), priceUsd: pos(b.current_price, 'current_price'), obsTime: Date.parse(b.last_updated) || Date.now() };
+  }
+};
+function parseYahoo(key, j) {
+  const c = j && j.chart;
+  if (!c) throw new Error('missing chart object');
+  if (c.error) throw new Error(`Yahoo error: ${c.error.code || ''} ${c.error.description || ''}`.trim());
+  const r = c.result && c.result[0]; if (!r || !r.meta) throw new Error('missing chart result');
+  if (r.meta.symbol !== SRC[key].symbol) throw new Error(`symbol ${r.meta.symbol} ≠ ${SRC[key].symbol}`);
+  const price = pos(r.meta.regularMarketPrice, 'regularMarketPrice'), t = num(r.meta.regularMarketTime, 'regularMarketTime');
+  const ts = r.timestamp || [], closes = (r.indicators && r.indicators.quote && r.indicators.quote[0] && r.indicators.quote[0].close) || [];
+  const bars = [];
+  ts.forEach((sec, i) => { const v = closes[i]; if (typeof v === 'number' && Number.isFinite(v) && v > 0) bars.push({ date: exchangeDate(sec, r.meta.gmtoffset), close: v }); });   // null = no bar yet (e.g. today)
+  const day = exchangeDate(t, r.meta.gmtoffset);
+  const prior = bars.filter(b => b.date < day);
+  return { price, prevClose: prior.length ? prior[prior.length - 1].close : null, bars, sessionDate: day, currency: r.meta.currency, obsTime: t * 1000 };
+}
+function parse(key, json) {
+  if (!SRC[key]) throw new Error(`unknown source ${key}`);
+  return key.startsWith('yahoo-') ? parseYahoo(key, json) : PARSE[key](json);
+}
+// Minimal structural check for values restored from localStorage.
+function validParsed(key, p) {
+  if (!p || typeof p !== 'object' || !Number.isFinite(p.obsTime)) return false;
+  const req = { 'binance-ticker':['price', 'changePct'], 'binance-klines':[], 'binance-premium':['rate', 'nextFundingTime'], 'binance-funding':[],
+                'coingecko-global':['btcd', 'totalMcapUsd'], 'coingecko-stablecoins':['stableMcapUsd'], 'coingecko-bitcoin':['ath'] }[key] || ['price'];
+  if (!req.every(f => Number.isFinite(p[f]))) return false;
+  if (key === 'binance-klines' || key === 'binance-funding') return Array.isArray(p.rows) && p.rows.length > 0;
+  return true;
+}
+// Published snapshot files (GitHub Pages) are refreshed every 30 min; older than 2x that = stale.
+const SNAPSHOT_INTERVAL_MS = 30 * MIN;
+function snapshotStale(entry, now) {
+  if (!entry || entry.via !== 'snapshot') return false;
+  const t = Date.parse(entry.retrievedAt);
+  return !(Number.isFinite(t) && now - t <= 2 * SNAPSHOT_INTERVAL_MS);
+}
+// 'live' | 'latest' | 'snapshot' | 'cached' | 'stale' | 'unavailable' | 'loading'
+function status(key, entry, now) {
+  const S = SRC[key];
+  if (!entry || !entry.parsed) return entry && entry.error ? 'unavailable' : 'loading';
+  const age = now - entry.parsed.obsTime;
+  if (age > S.staleAfter || snapshotStale(entry, now)) return 'stale';
+  if (entry.fromCache || entry.error) return 'cached';
+  if (entry.via === 'snapshot') return 'snapshot';          // never "live"
+  return S.kind === 'market' && age < 15 * MIN ? 'live' : 'latest';
+}
+// BTC/QQQ by calendar date: BTC UTC daily close ÷ QQQ close of the same New York date.
+function btcQqqSeries(btcRows, qqqBars) {
+  const btc = new Map(btcRows.map(r => [r.date, r.close]));
+  return qqqBars.filter(b => btc.has(b.date)).map(b => ({ date: b.date, ratio: btc.get(b.date) / b.close }));
+}
+root.SourcesCore = { SRC, parse, validParsed, status, btcQqqSeries, snapshotStale, SNAPSHOT_INTERVAL_MS };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
+/* ============================================================
+   STATE — effective indicator values. null = not loaded / unavailable.
+   No seed numbers: an indicator only counts once it is loaded from a
+   source or entered manually with Set.
+   ============================================================ */
+const state = {
+  btc: null, btcChange: null,
+  // Layer 1 (synced from the current table row, incl. manual overrides)
+  m2: null,       // M2 3-month direction: 1 rising, 0 flat, -1 falling
+  m2Level: null,  // $T
+  nlm: null,      // 8-week change in aligned net liquidity, $T
+  rrp: null,      // $B
+  tga: null,      // $B
+  ry: null,       // %
+  walcl: null,    // $T
+  // Layer 2
+  dxy: null, dxyChange: null, tenY: null,
+  ys: null, ysDate: null, // 10Y−2Y on a common date, %
+  qqq: null, qqqPrice: null,
+  // Layer 3
+  mvrv: null,     // manual only (no unauthenticated public source)
+  btcd: null, ssr: null,
+  fund: null      // decimal
+};
+const manualKeys = new Set();
+const manual = { mvrv: null };          // from data/manual.json: { value, date }   // L2/L3 keys set by hand (L1 uses l1Overrides)
+const has = v => v !== null && v !== undefined && Number.isFinite(v);
+
+/* ============================================================
+   SCORING ENGINE (see DATA_SOURCES.md)
+   L1: from the current-row badge classes (bull 2 / neutral 1 / bear 0), ≥4 of 6 inputs.
+   L2/L3: existing graded rules, averaged over available inputs only.
+   Composite: mean of the layers that have a score; partial coverage is shown.
+   ============================================================ */
+function layerScore(points, min) {
+  const v = points.filter(p => p !== null);
+  return { score: v.length >= min ? v.reduce((a, b) => a + b, 0) / (2 * v.length) * 10 : null, known: v.length, total: points.length };
+}
+function scorify() {
+  const cur = effectiveCurrentRow();
+  const l1 = cur ? cur.score : { score:null, known:0, total:6 };
+  const p = (v, f) => (has(v) ? f(v) : null);
+  const l2 = layerScore([
+    p(state.dxy, v => v < 98 ? 2 : v < 100 ? 1.5 : v < 102 ? 1 : 0),
+    p(state.ys,  v => v > 1.0 ? 2 : v > 0.3 ? 1.5 : v > 0 ? 1 : 0),
+    p(state.qqq, v => v > 140 ? 2 : v > 110 ? 1.5 : v > 90 ? 1 : 0)
+  ], 2);
+  const l3 = layerScore([
+    p(state.mvrv, v => v < 0 ? 2 : v < 1.5 ? 1.5 : v < 3 ? 1 : 0),
+    p(state.btcd, v => v > 58 ? 2 : v > 55 ? 1.5 : v > 50 ? 1 : 0),
+    p(state.ssr,  v => v < 7 ? 2 : v < 10 ? 1.5 : v < 13 ? 1 : 0),
+    p(state.fund, v => { const pct = v * 100; return pct < -0.02 ? 2 : pct < 0 ? 1.5 : pct < 0.02 ? 1 : 0; })   // thresholds in % per 8h
+  ], 3);
+  const scored = [l1, l2, l3].filter(l => l.score !== null);
+  // A single layer is not a composite: require at least 2 scored layers.
+  const composite = scored.length >= 2 ? scored.reduce((s, l) => s + l.score, 0) / scored.length : null;
+  return { l1, l2, l3, composite, layersScored: scored.length };
+}
+
+function getAction(s, allLayers) {
+  if (s >= 8) return allLayers ? ['Strong Buy — All 3 layers aligned bullish', 'Add 2× normal position size. All layers green.', '#047857']
+                               : ['Strong Buy (partial coverage)', 'Strong reading from the layers that could be scored.', '#047857'];
+  if (s >= 6.5) return ['Cautious Accumulate', 'DCA at current levels. Add on confirmed breakout.', '#b45309'];
+  if (s >= 5) return ['Hold / Small DCA', 'Hold core. Small DCA only. Watch MVRV for top signals.', '#b45309'];
+  if (s >= 3) return ['Reduce Exposure', 'Take partial profits. Multiple bearish signals building.', '#b91c1c'];
+  return ['Exit / Cash', 'MVRV overextended or liquidity collapsing. Move to USDT/cash.', '#b91c1c'];
+}
+
+function updateScoreUI() {
+  const { l1, l2, l3, composite, layersScored } = scorify();
+  const fmt = l => l.score === null ? `— (${l.known}/${l.total} inputs)` : l.score.toFixed(1) + (l.known < l.total ? ` (${l.known}/${l.total})` : '');
+  const partial = layersScored < 3 || [l1, l2, l3].some(l => l.known < l.total);
+  document.getElementById('compositeScore').textContent = composite === null ? '—' : composite.toFixed(1);
+  document.getElementById('scoreBar').style.width = (composite === null ? 0 : composite * 10) + '%';
+  document.getElementById('scoreBreakdown').textContent =
+    `L1: ${fmt(l1)} · L2: ${fmt(l2)} · L3: ${fmt(l3)}` + (layersScored < 3 ? ` · PARTIAL: ${layersScored}/3 layers scored` : partial ? ' · partial inputs (see layer counts)' : '');
+  const aEl = document.getElementById('actionSignal'), dEl = document.getElementById('actionDesc');
+  if (composite === null) {
+    aEl.textContent = 'Insufficient data'; aEl.style.color = '#374151';
+    dEl.textContent = `Not enough validated inputs to score (${layersScored}/3 layers scored; at least 2 needed). See the source status in each layer.`;
+  } else {
+    const [action, desc, col] = getAction(composite, layersScored === 3);
+    aEl.textContent = action; aEl.style.color = col;
+    dEl.textContent = desc + (partial ? ' Partial coverage: treat with caution.' : '');
+  }
+  const lvdict = s => s === null ? ['na-v', 'Insufficient data'] : s >= 7 ? ['bull-v', 'Bullish'] : s >= 5 ? ['neut-v', 'Mixed'] : ['bear-v', 'Bearish'];
+  [['l1verdict', l1], ['l2verdict', l2], ['l3verdict', l3]].forEach(([id, l]) => {
+    const [cls, txt] = lvdict(l.score);
+    const el = document.getElementById(id);
+    el.className = 'lv ' + cls;
+    el.textContent = l.score === null ? `${txt} (${l.known}/${l.total})` : `${txt} (${l.score.toFixed(1)}/10${l.known < l.total ? ` · ${l.known}/${l.total} inputs` : ''})`;
+  });
+}
+
+const L1_KEYS = { m2:'m2Trend', nlm:'nlm', rrp:'rrp', tga:'tga', ry:'ry', walcl:'walcl' };
+function updateIndicator(key, val) {
+  if (!Number.isFinite(val)) return;
+  if (key in L1_KEYS) { l1Overrides[key] = { value: val, at: new Date().toISOString() }; syncL1State(); }
+  else { state[key] = val; manualKeys.add(key); }
+  scheduleRender();
+  const sc = document.getElementById('compositeScore');
+  sc.style.color = '#c2410c';
+  setTimeout(() => sc.style.color = '', 700);
+}
+
+const BADGE_CLS = { bull:'bull-b', bear:'bear-b', neut:'neut-b', na:'na-b' };
+const CLASS_TXT = { bull:'Bullish', bear:'Bearish', neut:'Neutral', na:'No data' };
+function rebuildBadges() {
+  const B = (id, cls, txt) => { const el = document.getElementById(id); if (el) { el.className = 'badge ' + cls; el.textContent = txt;
+    const card = el.closest('.iblock'); if (card && !id.startsWith('alert')) card.className = 'iblock ' + ({ 'bull-b':'bull', 'bear-b':'bear', 'neut-b':'neut' }[cls] || 'nodata'); } };
+  const T = (id, txt, cls) => { const el = document.getElementById(id); if (el) { el.textContent = txt; if (cls !== undefined) el.className = cls; } };
+  const NA = (badge, val) => { B(badge, 'na-b', 'No data'); T(val, '—'); };
+
+  // Layer 1 cards: same classes/values as the table's current row.
+  const cur = effectiveCurrentRow();
+  Object.entries({ m2:'m2Trend', nlm:'nlm', rrp:'rrp', tga:'tga', ry:'ry', walcl:'walcl' }).forEach(([key, metric]) => {
+    const cell = cur ? cur.cells[metric] : null;
+    const cls = cur ? cur.classes[metric] : 'na';
+    B(`${key}-badge`, BADGE_CLS[cls], CLASS_TXT[cls] + (cell && cell.manual ? ' · Manual' : ''));
+    const card = document.getElementById(`${key}-badge`)?.closest('.iblock');
+    if (card) card.className = 'iblock ' + ({ bull:'bull', bear:'bear', neut:'neut' }[cls] || 'nodata');
+    T(`${key}-val`, l1CardValue(key, cur), 'ib-val');
+    T(`${key}-date`, cell ? l1CardNote(metric, cell, cur) : 'No data');
+  });
+  // Alert driven by NLM
+  const nlmCls = cur ? cur.classes.nlm : 'na';
+  B('alert-nlm-badge', nlmCls === 'na' ? 'na-b' : nlmCls === 'bull' ? 'bull-b' : 'neut-b', nlmCls === 'na' ? 'No data' : nlmCls === 'bull' ? 'Triggered' : 'Not triggered');
+
+  // Layer 2
+  if (has(state.dxy)) { B('dxy-badge', state.dxy < 98 ? 'bull-b' : state.dxy < 102 ? 'neut-b' : 'bear-b', state.dxy < 98 ? 'Bullish' : state.dxy < 102 ? 'Neutral' : 'Bearish'); T('dxy-val', state.dxy.toFixed(2)); } else NA('dxy-badge', 'dxy-val');
+  if (has(state.ys)) { B('ys-badge', state.ys > 0.5 ? 'bull-b' : state.ys > 0 ? 'neut-b' : 'bear-b', state.ys > 0.5 ? 'Bullish' : state.ys > 0 ? 'Neutral' : 'Inverted/Bear'); T('ys-val', (state.ys > 0 ? '+' : '') + state.ys.toFixed(2) + '%'); } else NA('ys-badge', 'ys-val');
+  if (has(state.qqq)) { B('qqq-badge', state.qqq > 140 ? 'bull-b' : state.qqq > 90 ? 'neut-b' : 'bear-b', state.qqq > 140 ? 'Outperforming' : state.qqq > 90 ? 'Neutral' : 'Underperforming'); T('qqq-val', state.qqq.toFixed(2)); } else NA('qqq-badge', 'qqq-val');
+  // Layer 3
+  if (has(state.mvrv)) { B('mvrv-badge', state.mvrv < 0.5 ? 'bull-b' : state.mvrv < 3 ? 'neut-b' : 'bear-b', state.mvrv < 0.5 ? 'Accumulate' : state.mvrv < 3 ? 'Fair Value' : state.mvrv < 6 ? 'Take Profits' : 'Exit Zone'); T('mvrv-val', state.mvrv.toFixed(1) + ' (manual)'); }
+  else { B('mvrv-badge', 'na-b', 'Enter value'); T('mvrv-val', '—'); }
+  if (has(state.btcd)) { B('btcd-badge', state.btcd > 58 ? 'bull-b' : state.btcd > 50 ? 'neut-b' : 'bear-b', state.btcd > 58 ? 'BTC Rally' : state.btcd > 50 ? 'Mixed' : 'Altseason'); T('btcd-val', state.btcd.toFixed(1) + '%'); } else NA('btcd-badge', 'btcd-val');
+  if (has(state.ssr)) { B('ssr-badge', state.ssr < 8 ? 'bull-b' : state.ssr < 12 ? 'neut-b' : 'bear-b', state.ssr < 8 ? 'Accumulate' : state.ssr < 12 ? 'Watch Exits' : 'Distribution'); T('ssr-val', state.ssr.toFixed(1)); } else NA('ssr-badge', 'ssr-val');
+  if (has(state.fund)) { const fp = state.fund * 100; B('fund-badge', fp < -0.005 ? 'bull-b' : fp < 0.01 ? 'neut-b' : 'bear-b', fp < -0.005 ? 'Squeeze Setup' : fp < 0.01 ? 'Neutral' : 'Crowded Longs'); T('fund-val', (state.fund > 0 ? '+' : '') + (state.fund * 100).toFixed(3) + '%'); } else NA('fund-badge', 'fund-val');
+}
+
+/* ============================================================
+   MARKET & CRYPTO SOURCES (Binance, CoinGecko, Yahoo)
+   Each source refreshes independently on its own interval (SourcesCore.SRC),
+   updates the page as soon as it arrives, and keeps its last valid value
+   (localStorage + server-side last-good copy) when a request fails.
+   Requests go through the local relay when it is running; Binance and
+   CoinGecko can also be read directly (they send CORS headers), Yahoo cannot.
+   ============================================================ */
+const sourceState = { Binance:false, CoinGecko:false, FRED:false, Yahoo:false };   // kept for status text
+const liveCache = { btcRows: [] };
+const SOURCE_CACHE_KEY = 'btcDash.sources.v1';
+const src = { entries: {}, inflight: {}, relay: null };
+const SRC_KEYS = Object.keys(SourcesCore.SRC);
+const SRC_STATUS_TXT = { live:'Live', latest:'Latest', snapshot:'Snapshot', cached:'Cached', stale:'Stale', unavailable:'Unavailable', loading:'Loading', manual:'Manual' };
+
+function loadSourceCache() {
+  let raw = null;
+  try { raw = JSON.parse(localStorage.getItem(SOURCE_CACHE_KEY) || 'null'); } catch (e) { raw = null; }
+  if (!raw || typeof raw !== 'object') return;
+  SRC_KEYS.forEach(k => {
+    const c = raw[k];
+    if (c && SourcesCore.validParsed(k, c.parsed)) src.entries[k] = { parsed: c.parsed, retrievedAt: c.retrievedAt, newObsAt: c.newObsAt, via: c.via, fromCache: true, error: null };
+  });
+}
+function saveSourceCache() {
+  const out = {};
+  SRC_KEYS.forEach(k => { const e = src.entries[k]; if (e && e.parsed) out[k] = { parsed: e.parsed, retrievedAt: e.retrievedAt, newObsAt: e.newObsAt, via: e.via }; });
+  try { localStorage.setItem(SOURCE_CACHE_KEY, JSON.stringify(out)); } catch (e) { /* storage full or blocked: keep running */ }
+}
+
+// Modes: 'relay' (serve.py answers /api/health: desktop, unchanged), 'snapshot' (no relay but
+// data/manifest.json exists: hosted copy reads FRED + Yahoo from published files), 'none'.
+async function detectRelay() {
+  if (location.protocol !== 'http:' && location.protocol !== 'https:') { src.relay = false; src.mode = 'none'; return false; }
+  try {
+    const r = await fetch('/api/health', { cache:'no-store', signal: AbortSignal.timeout(4000) });
+    src.relay = r.ok && (await r.json()).app === 'btc-macro-dashboard';
+  } catch (e) { src.relay = false; }
+  if (src.relay) { src.mode = 'relay'; return true; }
+  await loadSnapshotManifest(true);
+  src.mode = src.manifest ? 'snapshot' : 'none';
+  return false;
+}
+async function loadSnapshotManifest(force) {
+  if (!force && src.manifestAt && Date.now() - src.manifestAt < 60e3) return src.manifest;
+  try {
+    const r = await fetch('data/manifest.json', { cache:'no-store', signal: AbortSignal.timeout(10000) });
+    if (r.ok) {
+      const j = await r.json();
+      if (j && j.app === 'btc-macro-dashboard' && j.sources && typeof j.sources === 'object') { src.manifest = j; src.manifestAt = Date.now(); }
+    }
+  } catch (e) { /* keep the last manifest; files report their own errors */ }
+  return src.manifest || null;
+}
+// Reads one published snapshot file. Its time is the manifest's retrieved_at (when serve.py
+// fetched it), never "now". Kept-previous / published-fallback copies are reported as failures.
+async function fetchSnapshotFile(key, path, as) {
+  const m = await loadSnapshotManifest(false);
+  const e = m && m.sources[key];
+  if (!e) throw new Error(`${key} is not in the published snapshot`);
+  const why = `${e.error_kind || 'error'}${e.http_status ? ' ' + e.http_status : ''}: ${e.error || 'unknown'}`;
+  if (e.status === 'missing') throw new Error(`snapshot has no copy (${why})`);
+  let r;
+  try { r = await fetch(path, { cache:'no-store', signal: AbortSignal.timeout(20000) }); }
+  catch (err) { throw new Error('snapshot file unreachable (offline?)'); }
+  if (!r.ok) throw new Error(`snapshot file HTTP ${r.status}`);
+  return { body: as === 'text' ? await r.text() : await r.json(), retrievedAt: e.retrieved_at, lastModified: e.last_modified,
+           lastGood: e.status !== 'fresh', upstreamError: e.status !== 'fresh' ? `snapshot ${e.status} after ${why}` : null };
+}
+function launcherHint() {
+  if (location.protocol === 'file:') return 'page opened as a file; double-click Open_BTC_Dashboard.cmd to load this source';
+  return src.mode === 'none' ? 'no local server and no published data/ snapshot here' : 'local data server not running; start the dashboard with Open_BTC_Dashboard.cmd';
+}
+async function fetchSourceRaw(key) {
+  const S = SourcesCore.SRC[key];
+  if (src.relay) {
+    let r;
+    try { r = await fetch('/api/src/' + key, { cache:'no-store', signal: AbortSignal.timeout(45000) }); }
+    catch (e) { throw new Error(e.name === 'TimeoutError' ? 'local relay timed out after 45 s' : 'local relay unreachable (server stopped or browser offline)'); }
+    if (r.ok) return { json: await r.json(), retrievedAt: r.headers.get('X-Retrieved-At') || new Date().toISOString(), via:'local relay',
+                       lastGood: r.headers.get('X-Relay-Cache') === 'last-good', upstreamError: r.headers.get('X-Upstream-Error'),
+                       retryAfter: Number(r.headers.get('X-Retry-After')) || null };
+    let j = {}; try { j = await r.json(); } catch (e) { /* non-JSON error body */ }
+    const err = new Error(`${j.error || 'http'}${j.status ? ' ' + j.status : ''}: ${j.message || 'relay HTTP ' + r.status}`);
+    err.retryAfter = Number.isFinite(j.retry_after) ? j.retry_after : null;
+    throw err;
+  }
+  if (src.mode === 'snapshot' && !S.direct) {   // Yahoo: no CORS, so the hosted page reads the published snapshot
+    const f = await fetchSnapshotFile(key, `data/src/${key}.json`, 'json');
+    return { json: f.body, retrievedAt: f.retrievedAt, via:'snapshot', lastGood: f.lastGood, upstreamError: f.upstreamError };
+  }
+  if (!S.direct) throw new Error(`${S.group} sends no CORS headers; ${launcherHint()}`);
+  let r;
+  try { r = await fetch(S.direct, { cache:'no-store', signal: AbortSignal.timeout(15000) }); }
+  catch (e) { throw new Error(e.name === 'TimeoutError' ? 'request timed out' : 'network error: offline, blocked, or rejected without CORS headers (e.g. a rate limit); the browser cannot tell which'); }
+  if (!r.ok) { const err = new Error(`HTTP ${r.status}${r.status === 429 ? ' (rate limited)' : ''}`); err.retryAfter = Number(r.headers.get('Retry-After')) || null; throw err; }
+  return { json: await r.json(), retrievedAt: new Date().toISOString(), via:'direct' };
+}
+
+// One request per source at a time; failures back off (Retry-After when given, else 1, 2, 4… min, max 30).
+async function refreshSource(key, force = false) {
+  if (src.inflight[key]) return src.inflight[key];
+  const before = src.entries[key];
+  if (!force && before && before.nextAllowedAt && Date.now() < before.nextAllowedAt) return;
+  const run = (async () => {
+    const started = Date.now(), prev = src.entries[key];
+    const fail = (message, retryAfter) => {
+      const fails = ((prev && prev.failCount) || 0) + 1;
+      const wait = retryAfter ? Math.max(retryAfter * 1000, 60e3) : Math.min(30 * 60e3, 60e3 * 2 ** (fails - 1));
+      src.entries[key] = { ...(prev || {}), error: message, attemptedAt: started, failCount: fails, nextAllowedAt: started + wait };
+    };
+    try {
+      const raw = await fetchSourceRaw(key);
+      const parsed = SourcesCore.parse(key, raw.json);
+      if (raw.lastGood) {
+        // The relay could not reach the provider and returned its last valid copy:
+        // a failure (no new retrieval time), but the copy can fill an empty browser cache.
+        const keepPrev = prev && prev.parsed && prev.parsed.obsTime >= parsed.obsTime;
+        const base = keepPrev ? { parsed: prev.parsed, retrievedAt: prev.retrievedAt, newObsAt: prev.newObsAt, via: prev.via }
+                              : { parsed, retrievedAt: raw.retrievedAt, newObsAt: raw.retrievedAt, via: raw.via === 'snapshot' ? 'snapshot' : 'local relay (last valid copy)' };
+        fail(raw.upstreamError || 'provider unreachable; showing last valid copy', raw.retryAfter);
+        Object.assign(src.entries[key], base, { fromCache: true });
+      } else {
+        const isNew = !prev || !prev.parsed || prev.parsed.obsTime !== parsed.obsTime;
+        src.entries[key] = { parsed, retrievedAt: raw.retrievedAt, checkedAt: new Date(started).toISOString(), newObsAt: isNew ? raw.retrievedAt : prev.newObsAt,
+                             via: raw.via, fromCache: false, error: null, attemptedAt: started, failCount: 0, nextAllowedAt: 0 };
+      }
+    } catch (e) {
+      fail(e instanceof SyntaxError ? 'malformed response (not valid JSON)' : e.message, e.retryAfter);
+    }
+    saveSourceCache();
+    scheduleRender();
+  })();
+  src.inflight[key] = run;
+  try { await run; } finally { delete src.inflight[key]; }
+}
+
+// Copy validated source values into `state` (manual Set values win until cleared).
+function applySources() {
+  const P = k => (src.entries[k] && src.entries[k].parsed) || null;
+  const put = (key, v) => { if (!manualKeys.has(key)) state[key] = v; };
+  const t = P('binance-ticker');
+  state.btc = t ? t.price : null; state.btcChange = t ? t.changePct : null;
+  const kl = P('binance-klines'); liveCache.btcRows = kl ? kl.rows : [];
+  const pr = P('binance-premium'); put('fund', pr ? pr.rate : null);
+  const g = P('coingecko-global'), st = P('coingecko-stablecoins');
+  put('btcd', g ? g.btcd : null);
+  put('ssr', g && st ? (g.totalMcapUsd * g.btcd / 100) / st.stableMcapUsd : null);
+  if (!manualKeys.has('mvrv')) state.mvrv = manual.mvrv ? manual.mvrv.value : null;
+  const dx = P('yahoo-dxy'), qq = P('yahoo-qqq'), tn = P('yahoo-tnx');
+  put('dxy', dx ? dx.price : null);
+  state.dxyChange = dx && dx.prevClose ? (dx.price / dx.prevClose - 1) * 100 : null;
+  state.qqqPrice = qq ? qq.price : null;
+  state.tenY = tn ? tn.price : null;
+  put('qqq', has(state.btc) && has(state.qqqPrice) ? state.btc / state.qqqPrice : null);
+  ['fund', 'btcd', 'ssr', 'dxy', 'qqq'].forEach(k => { if (!manualKeys.has(k) && has(state[k])) setInput(k, k === 'fund' ? state[k] * 100 : state[k], k === 'fund' ? 4 : 2); });
+}
+
+function setInput(key, value, digits = 2) {
+  const el = document.getElementById(`in-${key}`);
+  if (el && document.activeElement !== el) el.value = Number(value).toFixed(digits);
+}
+function formatUSD(value) { return '$' + Math.round(value).toLocaleString('en-US'); }
+const fmtStamp = ms => Number.isFinite(ms) ? new Date(ms).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit', hour12:false }) + ' IST' : '—';
+
+// Compact "source · observation · status" line under a value, with full details on hover.
+function metaFor(keys, extra = '') {
+  const now = Date.now();
+  const parts = keys.map(k => {
+    const S = SourcesCore.SRC[k], e = src.entries[k], st = SourcesCore.status(k, e, now);
+    return { k, S, e, st };
+  });
+  const order = ['unavailable', 'loading', 'stale', 'cached', 'snapshot', 'latest', 'live'];
+  const worst = parts.map(p => p.st).sort((a, b) => order.indexOf(a) - order.indexOf(b))[0];
+  const first = parts[0];
+  const obs = first.e && first.e.parsed ? fmtStamp(first.e.parsed.obsTime) : '—';
+  const snap = parts.find(p => p.e && p.e.via === 'snapshot');
+  const label = worst === 'snapshot' || (worst === 'stale' && snap && SourcesCore.snapshotStale(snap.e, now))
+    ? `${worst === 'stale' ? 'Stale snapshot' : 'Snapshot'} ${fmtStamp(Date.parse(snap.e.retrievedAt))}`
+    : worst === 'latest' && first.S.kind === 'quote' ? 'Latest close' : SRC_STATUS_TXT[worst];
+  const text = `${parts.map(p => p.S.group + ' ' + p.S.instrument).join(' + ')} · obs ${obs} · ${label}${extra}`;
+  const title = parts.map(({ k, S, e, st }) =>
+    `${S.label} [${S.instrument}] — ${SRC_STATUS_TXT[st]}\n  Source: ${S.link}\n  Observation: ${e && e.parsed ? new Date(e.parsed.obsTime).toISOString() : '—'}` +
+    `\n  Last successful retrieval: ${e && e.retrievedAt ? e.retrievedAt : '—'}${e && e.via ? ' via ' + e.via : ''}` +
+    `${e && e.checkedAt ? '\n  Checked this session: ' + e.checkedAt + (e.newObsAt === e.retrievedAt ? ' (new observation)' : ' (no newer observation)') : ''}` +
+    `${e && e.error ? '\n  Last refresh failed: ' + e.error : ''}`).join('\n');
+  return { text, title, state: worst };
+}
+function setMeta(id, keys, extra) {
+  const el = document.getElementById(id); if (!el) return;
+  const m = metaFor(keys, extra);
+  el.textContent = m.text; el.title = m.title; el.className = 'ib-meta st-' + m.state;
+}
+function manualMeta(id, text) { const el = document.getElementById(id); if (el) { el.textContent = text; el.title = text; el.className = 'ib-meta st-manual'; } }
+
+function renderSourceMetas() {
+  const kl = liveCache.btcRows;
+  // Hero BTC
+  const t = src.entries['binance-ticker'] && src.entries['binance-ticker'].parsed;
+  document.getElementById('h-btc').textContent = t ? formatUSD(t.price) : '—';
+  const ch = document.getElementById('h-btc-change');
+  if (t) { ch.textContent = `${t.changePct >= 0 ? '▲ +' : '▼ '}${t.changePct.toFixed(2)}% over 24h · High ${formatUSD(t.high)} · Low ${formatUSD(t.low)}`; ch.className = `hc-sub ${t.changePct >= 0 ? 'up' : 'dn'}`; }
+  else { ch.textContent = src.entries['binance-ticker'] && src.entries['binance-ticker'].error ? 'BTC price unavailable: ' + src.entries['binance-ticker'].error : 'Loading BTC/USDT…'; ch.className = 'hc-sub'; }
+  setMeta('meta-btc', ['binance-ticker']);
+  // Layer 2 / 3 cards
+  manualKeys.has('dxy') ? manualMeta('meta-dxy', 'Manual value (Set) · Yahoo DX-Y.NYB not applied') : setMeta('meta-dxy', ['yahoo-dxy']);
+  manualKeys.has('qqq') ? manualMeta('meta-qqq', 'Manual value (Set)') : setMeta('meta-qqq', ['binance-ticker', 'yahoo-qqq']);
+  manualKeys.has('btcd') ? manualMeta('meta-btcd', 'Manual value (Set)') : setMeta('meta-btcd', ['coingecko-global']);
+  manualKeys.has('ssr') ? manualMeta('meta-ssr', 'Manual value (Set)') : setMeta('meta-ssr', ['coingecko-global', 'coingecko-stablecoins']);
+  manualKeys.has('fund') ? manualMeta('meta-fund', 'Manual value (Set)') : setMeta('meta-fund', ['binance-premium']);
+  manualMeta('meta-mvrv', manualKeys.has('mvrv') ? 'Manual · set in this browser only (temporary; data/manual.json unchanged)'
+    : manual.mvrv ? `Manual · ${manual.mvrv.date} · data/manual.json (same on every device)` : 'Manual input · no value in data/manual.json');
+  if (manualKeys.has('ys')) manualMeta('meta-ys', 'Manual value (Set)');
+  else {
+    // 10Y−2Y comes from FRED (DGS10, DGS2): show their combined freshness and check time
+    const el = document.getElementById('meta-ys');
+    const fr = ['DGS10', 'DGS2'].map(id => ({ id, e: fred.entries[id], f: freshnessOf(id) }));
+    const order = ['unavailable', 'stale', 'cached', 'latest'], worst = fr.map(x => x.f.state).sort((a, b) => order.indexOf(a) - order.indexOf(b))[0];
+    const label = { latest:'Latest published', cached:'Cached', stale:'Stale', unavailable: fred.attempted ? 'Unavailable' : 'Loading' }[worst];
+    const cls = { latest:'st-latest', cached:'st-cached', stale:'st-stale', unavailable: fred.attempted ? 'st-unavailable' : 'st-loading' }[worst];
+    if (el) {
+      const snapE = fr.map(x => x.e).find(e => e && e.via === 'snapshot');
+      el.textContent = `FRED DGS10 − DGS2 · obs ${state.ysDate || '—'} · ${label}${snapE ? ' · snapshot ' + fmtStamp(Date.parse(snapE.retrievedAt)) : ''}`;
+      el.className = 'ib-meta ' + cls;
+      el.title = fr.map(({ id, e, f }) => `${id} (https://fred.stlouisfed.org/series/${id}) — ${STATUS_TXT[f.state] || f.state}; latest observation ${f.have || '—'}` +
+        `${e && e.checkedAt ? '; checked ' + e.checkedAt : ''}${e && e.retrievedAt ? '; retrieved ' + e.retrievedAt : ''}${e && e.error ? '; last refresh failed: ' + e.error : ''}`).join('\n');
+    }
+  }
+  const T = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  const dx = src.entries['yahoo-dxy'] && src.entries['yahoo-dxy'].parsed;
+  T('dxy-delta', dx && has(state.dxyChange) ? `${state.dxyChange >= 0 ? '▲ +' : '▼ '}${state.dxyChange.toFixed(2)}% vs prior close` : '');
+  const qq = src.entries['yahoo-qqq'] && src.entries['yahoo-qqq'].parsed;
+  T('qqq-delta', qq ? `QQQ $${qq.price.toFixed(2)} (${qq.sessionDate}) · BTC/USDT ÷ QQQ (USD)` : '');
+  const pr = src.entries['binance-premium'] && src.entries['binance-premium'].parsed;
+  T('fund-delta', pr ? `per 8h · next ${fmtStamp(pr.nextFundingTime)}` : '');
+  const st = src.entries['coingecko-stablecoins'] && src.entries['coingecko-stablecoins'].parsed;
+  T('ssr-delta', st ? `÷ $${(st.stableMcapUsd / 1e9).toFixed(0)}B stablecoins (${st.counted})` : '');
+  T('btcd-delta', '');
+  // Cycle context (computed; halving block 840,000 mined 2024-04-20 UTC)
+  const HALVING = Date.UTC(2024, 3, 20), now = new Date();
+  const months = (now.getUTCFullYear() - 2024) * 12 + now.getUTCMonth() - 3 - (now.getUTCDate() < 20 ? 1 : 0) + 1;
+  const b = src.entries['coingecko-bitcoin'] && src.entries['coingecko-bitcoin'].parsed;
+  const dd = b && t ? (t.price / b.ath - 1) * 100 : null;
+  T('cyc-month', `Month ${months}`); T('hc-cycle-month', `Month ${months} post-halving`);
+  T('cyc-ath', b ? `$${Math.round(b.ath).toLocaleString('en-US')} (${b.athDate})` : '—');
+  T('cyc-dd', dd === null ? 'Waiting for CoinGecko ATH and Binance price' : `${dd.toFixed(1)}% from ATH · ATH: CoinGecko (USD); price: Binance BTC/USDT`);
+  T('hc-cycle-sub', `Halving 2024-04-20 (block 840,000)${dd === null ? '' : ` · ${Math.abs(dd).toFixed(0)}% below ATH $${Math.round(b.ath / 1000)}K`}`);
+  void kl;
+}
+
+function updateAlerts() {
+  const B = (id, cls, txt) => { const el = document.getElementById(id); if (el) { el.className = 'badge ' + cls; el.textContent = txt; } };
+  if (has(state.btc)) {
+    B('alert-btc-hi', state.btc > 78800 ? 'bull-b' : 'neut-b', state.btc > 78800 ? `Triggered (${formatUSD(state.btc)})` : 'Watching');
+    B('alert-btc-lo', state.btc < 70000 ? 'bear-b' : 'neut-b', state.btc < 70000 ? `Triggered (${formatUSD(state.btc)})` : 'Watching');
+  } else { B('alert-btc-hi', 'na-b', 'No data'); B('alert-btc-lo', 'na-b', 'No data'); }
+  if (has(state.mvrv)) B('alert-mvrv', state.mvrv > 3 ? 'bear-b' : 'bull-b', state.mvrv > 3 ? `Triggered (${state.mvrv.toFixed(1)})` : `Safe (${state.mvrv.toFixed(1)}, manual)`);
+  else B('alert-mvrv', 'na-b', 'Enter MVRV');
+  if (has(state.dxy)) B('alert-dxy', state.dxy > 100 ? 'bear-b' : 'bull-b', state.dxy > 100 ? `Triggered (${state.dxy.toFixed(1)})` : `Safe (${state.dxy.toFixed(1)})`);
+  else B('alert-dxy', 'na-b', 'No data');
+}
+
+/* ============================================================
+   FRED DATA LAYER (browser)
+   Only through the same-origin relay /api/fred (serve.py): FRED sends no CORS headers.
+   Valid responses are cached in localStorage; failed series keep their
+   last valid cache and are labelled Cached/Stale, never live.
+   ============================================================ */
+const FRED_IDS = ['M2SL', 'WALCL', 'WDTGAL', 'RRPONTSYD', 'DFII10', 'DGS10', 'DGS2'];
+const L1_SERIES_IDS = ['M2SL', 'WALCL', 'WDTGAL', 'RRPONTSYD', 'DFII10'];
+const FRED_CACHE_KEY = 'btcDash.fred.v2';
+const FRED_TTL_MS = { daily: 2 * 3600e3, weekly: 6 * 3600e3, monthly: 12 * 3600e3 };
+const FRED_RETRY_FAILED_MS = 10 * 60e3;
+const fred = { entries: {}, attempted: false };
+
+function loadFredCache() {
+  try { localStorage.removeItem('btcDash.l1History.v1'); } catch (e) {}   // superseded derived cache (unaligned method)
+  let raw = null;
+  try { raw = JSON.parse(localStorage.getItem(FRED_CACHE_KEY) || 'null'); } catch (e) {}
+  if (!raw || typeof raw !== 'object') return;
+  FRED_IDS.forEach(id => {
+    const c = raw[id];
+    if (!c || typeof c.text !== 'string') return;
+    try { fred.entries[id] = { ...c, parsed: L1Core.parseFredCsv(c.text, id), fromCache: true, error: null }; }
+    catch (e) { /* cache entry failed validation: discard */ }
+  });
+}
+function saveFredCache() {
+  const out = {};
+  FRED_IDS.forEach(id => {
+    const e = fred.entries[id];
+    if (e && e.text) out[id] = { text: e.text, retrievedAt: e.retrievedAt, sourceUpdated: e.sourceUpdated, provider: e.provider, cosd: e.cosd };
+  });
+  try { localStorage.setItem(FRED_CACHE_KEY, JSON.stringify(out)); } catch (e) {}
+}
+
+function describeFetchError(err) {
+  if (err && (err.name === 'TimeoutError' || err.name === 'AbortError')) return { kind:'timeout', message:'request timed out' };
+  if (err instanceof TypeError) return { kind:'network', message:'network error or blocked by CORS' };
+  return { kind:'validation', message: (err && err.message) || String(err) };
+}
+async function fetchFredSeries(id, cosd) {
+  // FRED sends no CORS headers (verified 2026-11-15), so only the local relay can read it.
+  if (src.relay === null) await detectRelay();
+  if (src.mode === 'snapshot') {
+    const f = await fetchSnapshotFile(id, `data/fred/${id}.csv`, 'text');
+    return { text: f.body, parsed: L1Core.parseFredCsv(f.body, id), provider: 'FRED (Federal Reserve Bank of St. Louis) via published snapshot',
+             sourceUpdated: f.lastModified, retrievedAt: f.retrievedAt, cosd, lastGood: f.lastGood, upstreamError: f.upstreamError, via:'snapshot' };
+  }
+  if (!src.relay) { const e = new Error(`relay-missing: ${launcherHint()}`); throw e; }
+  let r;
+  try { r = await fetch(`/api/fred/${id}?cosd=${cosd}`, { cache:'no-store', signal: AbortSignal.timeout(70000) }); }
+  catch (e) { throw new Error(e.name === 'TimeoutError' ? 'local relay timed out' : 'local relay unreachable (server stopped?)'); }
+  const type = r.headers.get('content-type') || '';
+  if (r.ok && type.includes('text/csv')) {
+    const text = await r.text();
+    return { text, parsed: L1Core.parseFredCsv(text, id), provider: r.headers.get('X-Provider') || 'FRED via local relay',
+             sourceUpdated: r.headers.get('X-Source-Last-Modified'), retrievedAt: r.headers.get('X-Retrieved-At') || new Date().toISOString(), cosd,
+             lastGood: r.headers.get('X-Relay-Cache') === 'last-good', upstreamError: r.headers.get('X-Upstream-Error') };
+  }
+  let j = {}; try { j = await r.json(); } catch (e) { /* not JSON */ }
+  throw new Error(`${j.error || 'http'}${j.status ? ' ' + j.status : ''}: ${j.message || 'relay HTTP ' + r.status}`);
+}
+
+function fredDue(id, now) {
+  const e = fred.entries[id];
+  if (src.mode === 'snapshot') return !e || !e.attemptedAt || now - e.attemptedAt > 10 * 60e3;   // follow each 30-min snapshot
+  if (!e || !e.parsed) return !e || !e.attemptedAt || now - e.attemptedAt > FRED_RETRY_FAILED_MS;
+  if (e.error) return !e.attemptedAt || now - e.attemptedAt > FRED_RETRY_FAILED_MS;
+  const age = now - Date.parse(e.checkedAt || e.retrievedAt || 0);
+  if (!(age < FRED_TTL_MS[L1Core.SERIES[id].freq])) return true;
+  return L1Core.seriesFreshness(id, e, now).state === 'stale' && age > 30 * 60e3;   // a newer release is due
+}
+
+let fredInflight = null;
+async function refreshFred(force) {
+  if (fredInflight) return fredInflight;
+  fredInflight = (async () => {
+    const now = Date.now(), cosd = L1Core.historyStart(now);
+    const ids = FRED_IDS.filter(id => force || fredDue(id, now));
+    const failures = [];
+    await Promise.allSettled(ids.map(async id => {      // each series updates the page as soon as it arrives
+      const prev = fred.entries[id];
+      try {
+        const res = await fetchFredSeries(id, cosd);
+        if (res.lastGood) {
+          const keepPrev = prev && prev.parsed && prev.parsed.lastRowDate >= res.parsed.lastRowDate;
+          fred.entries[id] = keepPrev ? { ...prev, fromCache: true, error: res.upstreamError, attemptedAt: now }
+                                      : { ...res, fromCache: true, error: res.upstreamError || 'FRED unreachable; last valid copy', attemptedAt: now, newDataAt: res.retrievedAt };
+          failures.push(`${id}: ${res.upstreamError}`);
+        } else {
+          const same = prev && prev.parsed && prev.parsed.lastRowDate === res.parsed.lastRowDate && prev.newDataAt;
+          fred.entries[id] = { ...res, fromCache: false, error: null, attemptedAt: now, checkedAt: new Date().toISOString(), newDataAt: same ? prev.newDataAt : res.retrievedAt };
+        }
+      } catch (e) {
+        const msg = e.message;
+        failures.push(`${id}: ${msg}`);
+        fred.entries[id] = prev && prev.parsed ? { ...prev, fromCache: true, error: msg, attemptedAt: now } : { error: msg, attemptedAt: now };
+      }
+      fred.attempted = true;
+      scheduleL1Rebuild();
+    }));
+    if (ids.length) saveFredCache();
+    fred.attempted = true;
+    return { attempted: ids, failures };
+  })();
+  try { return await fredInflight; } finally { fredInflight = null; }
+}
+let l1RebuildQueued = false;
+function scheduleL1Rebuild() {
+  if (l1RebuildQueued) return;
+  l1RebuildQueued = true;
+  setTimeout(() => { l1RebuildQueued = false; try { rebuildL1(); } catch (e) { console.error(e); } scheduleRender(); }, 0);
+}
+
+async function loadFREDData(force = true) {
+  const { failures } = await refreshFred(force);
+  rebuildL1();
+  const allValid = FRED_IDS.every(id => fred.entries[id] && fred.entries[id].parsed && !fred.entries[id].error);
+  sourceState.FRED = allValid ? (FRED_IDS.some(id => fred.entries[id].fromCache) ? 'cached' : 'live') : false;
+  if (failures.length) throw new Error(failures.join(' | '));
+}
+
+function refreshDerivedData() {
+  applySources();
+  rebuildBadges();
+  updateScoreUI();
+  renderL1Table();
+  syncTradingViewCards();
+}
+
+/* ============================================================
+   LAYER 1 — TABLE, CARDS, SOURCE PANEL
+   Rows come from L1Core.buildTable (12 completed months + current).
+   Manual "Set" values override only the current row and are marked.
+   ============================================================ */
+let l1Rows = [];
+const l1Overrides = {};                     // key → { value, at }
+const l1View = { sortKey:'date', sortDir:'asc', selected:null };
+const METRIC_SERIES = { m2Level:['M2SL'], m2Trend:['M2SL'], nlm:['WALCL', 'WDTGAL', 'RRPONTSYD'], rrp:['RRPONTSYD'], tga:['WDTGAL'], ry:['DFII10'], walcl:['WALCL'] };
+const STATUS_TXT = { latest:'Latest published', cached:'Cached', stale:'Stale', unavailable:'Unavailable' };
+const fin = Number.isFinite;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const signedFmt = (v, d) => { const r = Number(v.toFixed(d)); return (r > 0 ? '+' : r < 0 ? '−' : '') + Math.abs(r).toFixed(d); };
+const DIR_TXT = { 1:'▲ Rising', 0:'■ Flat', '-1':'▼ Falling' };
+const L1_FMT = {
+  m2Level: c => '$' + c.value.toFixed(2),
+  m2Trend: c => c.manual ? DIR_TXT[c.dir] : `${DIR_TXT[c.dir].slice(0, 1)} ${signedFmt(c.value * 100, 2)}%`,
+  nlm:     c => signedFmt(c.value, 2),
+  rrp:     c => '$' + (Math.abs(c.value) < 10 ? c.value.toFixed(2) : Math.round(c.value).toLocaleString('en-US')),
+  tga:     c => '$' + Math.round(c.value).toLocaleString('en-US'),
+  ry:      c => c.value.toFixed(2) + '%',
+  walcl:   c => '$' + c.value.toFixed(2) + (fin(c.qoq) ? ` · ${signedFmt(c.qoq * 100, 1)}%` : '')
+};
+function l1CellHasValue(metric, c) {
+  if (!c) return false;
+  return metric === 'm2Trend' ? c.dir === 1 || c.dir === 0 || c.dir === -1 : fin(c.value);
+}
+const shortDate = d => new Date(d + 'T00:00:00Z').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric', timeZone:'UTC' });
+function obsLabel(metric, c) {
+  if (c.manual) return 'manual';
+  if (metric === 'm2Level' || metric === 'm2Trend') return L1Core.monthLabel(c.date.slice(0, 7));
+  return (metric === 'nlm' ? 'wk ' : '') + shortDate(c.date);
+}
+function fmtTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return isNaN(d) ? esc(iso) : d.toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:false }) + ' IST';
+}
+function freshnessOf(id) {
+  const e = fred.entries[id], f = L1Core.seriesFreshness(id, e && e.parsed ? e : null, Date.now());
+  return SourcesCore.snapshotStale(e && e.parsed ? e : null, Date.now()) ? { ...f, state: 'stale', snapshotStale: true } : f;
+}
+function metricFreshness(metric) {
+  const order = ['unavailable', 'stale', 'cached', 'latest'];
+  return METRIC_SERIES[metric].map(freshnessOf).map(f => f.state).sort((a, b) => order.indexOf(a) - order.indexOf(b))[0];
+}
+
+function rebuildL1() {
+  const parsed = {};
+  FRED_IDS.forEach(id => { if (fred.entries[id] && fred.entries[id].parsed) parsed[id] = fred.entries[id].parsed; });
+  l1Rows = L1Core.buildTable(L1Core.buildDataset(parsed), Date.now());
+  // 10Y−2Y spread on the latest date both yields exist
+  if (!manualKeys.has('ys')) {
+    state.ys = null; state.ysDate = null;
+    if (parsed.DGS10 && parsed.DGS2) {
+      const two = new Map(parsed.DGS2.rows);
+      for (let i = parsed.DGS10.rows.length - 1; i >= 0; i--) {
+        const [d, v] = parsed.DGS10.rows[i];
+        if (two.has(d)) { state.ys = v - two.get(d); state.ysDate = d; break; }
+      }
+    }
+    const el = document.getElementById('ys-delta');
+    if (el) el.textContent = state.ysDate ? `10Y − 2Y on ${state.ysDate} (FRED DGS10, DGS2)` : 'FRED DGS10/DGS2 unavailable';
+    if (has(state.ys)) setInput('ys', state.ys, 2);
+  }
+  syncL1State();
+  const cur = l1Rows[l1Rows.length - 1];
+  if (cur) {
+    const c = cur.cells, put = (key, cell, digits, f = v => v) => { if (!l1Overrides[key] && cell && fin(cell.value)) setInput(key, f(cell.value), digits); };
+    if (!l1Overrides.m2 && l1CellHasValue('m2Trend', c.m2Trend)) setInput('m2', c.m2Trend.dir, 0);
+    put('nlm', c.nlm, 3); put('rrp', c.rrp, 3); put('tga', c.tga, 0); put('ry', c.ry, 2); put('walcl', c.walcl, 3);
+  }
+}
+
+function effectiveCurrentRow() {
+  const src = l1Rows[l1Rows.length - 1];
+  if (!src) return null;
+  if (!Object.keys(l1Overrides).length) return src;
+  const row = { ...src, cells: { ...src.cells } };
+  Object.entries(l1Overrides).forEach(([key, o]) => {
+    const metric = L1_KEYS[key], prev = src.cells[metric] || {};
+    if (key === 'm2') row.cells.m2Trend = { value:null, dir: Math.sign(o.value), manual:o, source: prev };
+    else if (key === 'walcl') row.cells.walcl = { value: o.value, qoq: prev.base && fin(prev.base.raw) ? o.value / (prev.base.raw / 1e6) - 1 : null, base: prev.base, manual:o, source: prev };
+    else row.cells[metric] = { value: o.value, manual:o, source: prev };
+  });
+  return L1Core.finalizeRow(row);
+}
+function syncL1State() {
+  const cur = effectiveCurrentRow(), c = cur ? cur.cells : {};
+  state.m2 = l1CellHasValue('m2Trend', c.m2Trend) ? c.m2Trend.dir : null;
+  state.m2Level = c.m2Level && fin(c.m2Level.value) ? c.m2Level.value : null;
+  ['nlm', 'rrp', 'tga', 'ry', 'walcl'].forEach(k => { state[k] = c[k] && fin(c[k].value) ? c[k].value : null; });
+}
+function clearL1Overrides() {
+  Object.keys(l1Overrides).forEach(k => delete l1Overrides[k]);
+  manualKeys.clear();
+  rebuildL1(); scheduleRender();
+}
+
+// Card helpers
+function l1CardValue(key, cur) {
+  if (!cur) return '—';
+  const m2 = cur.cells.m2Trend;
+  if (key === 'm2') return m2 && m2.manual ? DIR_TXT[m2.dir] + ' (manual)' : l1CellHasValue('m2Level', cur.cells.m2Level) ? `$${cur.cells.m2Level.value.toFixed(2)}T` : '—';
+  const metric = L1_KEYS[key], c = cur.cells[metric];
+  if (!l1CellHasValue(metric, c)) return '—';
+  const unit = { nlm:'T', rrp:'B', tga:'B' }[metric] || '';
+  return metric === 'walcl' ? '$' + c.value.toFixed(2) + 'T' : L1_FMT[metric](c) + unit;
+}
+function l1CardNote(metric, c, cur) {
+  if (c.manual) return `Manual value · set ${fmtTime(c.manual.at)}`;
+  if (metric === 'm2Trend') {
+    const lvl = cur.cells.m2Level;
+    if (!l1CellHasValue('m2Level', lvl)) return lvl && lvl.state === 'pending' ? 'Not yet published' : 'Unavailable';
+    const f = metricFreshness('m2Level'), tag = f === 'latest' ? '' : ` · ${STATUS_TXT[f]}`;
+    return (l1CellHasValue('m2Trend', c) ? `${L1Core.monthLabel(lvl.date.slice(0, 7))} · ${signedFmt(c.value * 100, 2)}% vs ${L1Core.monthLabel(c.base.date.slice(0, 7))}` : `${L1Core.monthLabel(lvl.date.slice(0, 7))} · trend unavailable`) + tag;
+  }
+  if (!l1CellHasValue(metric, c)) return c.state === 'pending' ? 'Not yet published' : 'Unavailable';
+  const f = metricFreshness(metric), tag = f === 'latest' ? '' : ` · ${STATUS_TXT[f]}`;
+  if (metric === 'nlm') return `8-week change to Wed ${shortDate(c.date)}${c.skipped && c.skipped.length ? ` (${c.skipped.map(s => shortDate(s.date)).join(', ')} not computable)` : ''}${tag}`;
+  if (metric === 'walcl') return `Obs ${shortDate(c.date)}${fin(c.qoq) ? ` · ${signedFmt(c.qoq * 100, 2)}% vs 13 weeks earlier` : ''}${tag}`;
+  return `Obs ${shortDate(c.date)}${tag}`;
+}
+
+// Table
+function cellTooltip(row, metric, c) {
+  if (c.manual) return `Manual value set ${fmtTime(c.manual.at)}`;
+  if (!l1CellHasValue(metric, c)) return c.reason || 'Unavailable';
+  return `${metric === 'nlm' ? 'Wednesday' : 'Observation'} ${c.date}${row.current ? '' : ' (last valid observation in month)'} · click for source`;
+}
+function cellHtml(row, metric) {
+  const c = row.cells[metric] || {}, id = `${row.key}:${metric}`, sel = l1View.selected === id;
+  const attrs = `type="button" data-cell="${id}" aria-pressed="${sel}" title="${esc(cellTooltip(row, metric, c))}"`;
+  if (!l1CellHasValue(metric, c)) {
+    const pend = c.state === 'pending';
+    return `<button ${attrs} class="vb ${pend ? 'pend' : 'na'}">${pend ? 'Not yet published' : 'Unavailable'}</button>`;
+  }
+  const cls = metric === 'm2Level' ? 'plain' : row.classes[metric];
+  const fresh = c.manual ? 'latest' : metricFreshness(metric);
+  const flag = fresh === 'stale' ? ' stale' : '';
+  const date = row.current ? `<span class="od">${esc(obsLabel(metric, c))}${fresh !== 'latest' ? ' · ' + STATUS_TXT[fresh].toLowerCase() : ''}</span>` : '';
+  return `<button ${attrs} class="vb ${cls}${flag}">${esc(L1_FMT[metric](c))}${c.manual ? ' ✎' : ''}</button>${date}`;
+}
+const SIG_TXT = { bull:'Bullish', bear:'Bearish', neut:'Neutral', insufficient:'Insufficient data' };
+function rowsForDisplay() { const cur = effectiveCurrentRow(); return l1Rows.length ? [...l1Rows.slice(0, -1), cur] : []; }
+
+function renderL1Table() {
+  const body = document.getElementById('l1h-body');
+  if (!body) return;
+  const rows = rowsForDisplay();
+  const sortVal = {
+    date: r => r.key, m2Level: r => r.cells.m2Level?.value, m2Trend: r => r.cells.m2Trend?.manual ? r.cells.m2Trend.dir / 100 : r.cells.m2Trend?.value,
+    nlm: r => r.cells.nlm?.value, rrp: r => r.cells.rrp?.value, tga: r => r.cells.tga?.value, ry: r => r.cells.ry?.value,
+    walcl: r => r.cells.walcl?.value, signal: r => r.sig.known ? r.sig.bull - r.sig.bear : null
+  }[l1View.sortKey];
+  const dir = l1View.sortDir === 'asc' ? 1 : -1;
+  rows.sort((a, b) => {
+    const va = sortVal(a), vb = sortVal(b);
+    const na = va === null || va === undefined || (typeof va === 'number' && !fin(va));
+    const nb = vb === null || vb === undefined || (typeof vb === 'number' && !fin(vb));
+    if (na || nb) return na === nb ? 0 : na ? 1 : -1;     // missing values always last
+    return (va < vb ? -1 : va > vb ? 1 : 0) * dir;
+  });
+  body.innerHTML = rows.map(r => {
+    const s = r.sig, sigCls = s.signal === 'insufficient' ? 'na' : s.signal, id = `${r.key}:signal`;
+    return `<tr class="${r.current ? 'cur' : ''}">
+      <th scope="row">${esc(r.label)}${r.current ? '<span class="od">latest observation per metric</span>' : ''}</th>
+      ${['m2Level', 'm2Trend', 'nlm', 'rrp', 'tga', 'ry', 'walcl'].map(m => `<td>${cellHtml(r, m)}</td>`).join('')}
+      <td><button type="button" class="vb sig ${sigCls}" data-cell="${id}" aria-pressed="${l1View.selected === id}"
+        title="${s.bull} bullish · ${s.neut} neutral · ${s.bear} bearish · ${s.na} missing">${SIG_TXT[s.signal]}<span class="cnt">${s.bull}▲ ${s.bear}▼${s.na ? ` ${s.na}?` : ''}</span></button></td>
+    </tr>`;
+  }).join('');
+
+  document.querySelectorAll('#l1History .l1h-sort').forEach(btn => {
+    const active = btn.dataset.sort === l1View.sortKey;
+    btn.setAttribute('aria-pressed', active);
+    btn.closest('th').setAttribute('aria-sort', active ? (l1View.sortDir === 'asc' ? 'ascending' : 'descending') : 'none');
+    btn.querySelector('.arr').textContent = active ? (l1View.sortDir === 'asc' ? '▲' : '▼') : '↕';
+  });
+  renderL1Status();
+  renderSourcePanel();
+  document.getElementById('l1-clear').hidden = !Object.keys(l1Overrides).length && !manualKeys.size;
+}
+
+function renderL1Status() {
+  const chips = document.getElementById('l1h-chips'), status = document.getElementById('l1h-status');
+  const fr = Object.fromEntries(L1_SERIES_IDS.map(id => [id, freshnessOf(id)]));
+  chips.innerHTML = L1_SERIES_IDS.map(id => {
+    const f = fr[id], e = fred.entries[id] || {}, s = L1Core.SERIES[id];
+    const have = f.have ? (s.freq === 'monthly' ? L1Core.monthLabel(f.have) : shortDate(f.have)) : '—';
+    const tip = `${s.name} · ${STATUS_TXT[f.state]} · latest observation ${have} (expected at least ${f.expected})` +
+      (e.retrievedAt ? ` · retrieved ${fmtTime(e.retrievedAt)}` : '') + (e.error ? ` · last refresh failed: ${e.error}` : '');
+    return `<a class="chip ${f.state}" href="${s.url}" target="_blank" rel="noopener" title="${esc(tip)}">${id} · ${STATUS_TXT[f.state]} · ${have}</a>`;
+  }).join('');
+  const counts = {}; Object.values(fr).forEach(f => { counts[f.state] = (counts[f.state] || 0) + 1; });
+  const errors = L1_SERIES_IDS.map(id => fred.entries[id]).filter(e => e && e.error);
+  let text, bad = !!(counts.unavailable || counts.stale || errors.length);
+  if (!fred.attempted && !Object.keys(fred.entries).length) { text = 'LOADING FRED DATA…'; bad = false; }
+  else if (counts.latest === L1_SERIES_IDS.length) {
+    const snapE = fred.entries[L1_SERIES_IDS[0]].via === 'snapshot' ? fred.entries[L1_SERIES_IDS[0]] : null;
+    text = (`FRED · ${L1_SERIES_IDS.length}/${L1_SERIES_IDS.length} SERIES LATEST PUBLISHED · ` +
+      (snapE ? `SNAPSHOT ${fmtTime(snapE.retrievedAt)}` : `CHECKED ${fmtTime(Math.max(...L1_SERIES_IDS.map(id => Date.parse(fred.entries[id].checkedAt || fred.entries[id].retrievedAt))))}`)).toUpperCase();
+  }
+  else {
+    text = 'FRED · ' + ['latest', 'cached', 'stale', 'unavailable'].filter(k => counts[k]).map(k => `${counts[k]} ${STATUS_TXT[k]}`).join(' · ').toUpperCase();
+    if (errors.length) {
+      const relayMissing = errors.some(e => /relay-missing|Open_BTC_Dashboard|relay unreachable/.test(e.error));
+      text += relayMissing ? ' · NEEDS THE LOCAL SERVER: DOUBLE-CLICK Open_BTC_Dashboard.cmd' : ' · LAST REFRESH FAILED (HOVER A CHIP FOR DETAILS)';
+    }
+  }
+  status.textContent = text;
+  status.classList.toggle('err', bad);
+}
+
+function seriesBlock(id, date, raw) {
+  const s = L1Core.SERIES[id], e = fred.entries[id] || {}, f = freshnessOf(id);
+  return `<div class="src-series"><a href="${s.url}" target="_blank" rel="noopener">FRED ${id}</a> — ${esc(s.name)}<br>
+    Publisher: ${esc(s.publisher)} (${esc(s.release)}) · Retrieved via: ${esc(e.provider || '—')}<br>
+    Observation <strong>${date}</strong>: ${fin(raw) ? raw.toLocaleString('en-US', { maximumFractionDigits: 6 }) : '—'} (${esc(s.native)}) → ${esc(s.display)}: ${esc(s.conversion)}<br>
+    Source last updated: ${e.sourceUpdated ? fmtTime(e.sourceUpdated) : 'not provided by provider'} · Last successful retrieval: ${fmtTime(e.retrievedAt)}${e.checkedAt ? ` · Checked this session: ${fmtTime(e.checkedAt)}${e.newDataAt && e.newDataAt !== e.retrievedAt ? ` (no newer observation since ${fmtTime(e.newDataAt)})` : ''}` : ''} · Status: <strong>${STATUS_TXT[f.state]}</strong> (expected latest ≥ ${f.expected})${e.error ? `<br><span class="src-err">Last refresh failed: ${esc(e.error)}</span>` : ''}</div>`;
+}
+function netBlock(n, label) {
+  if (!n) return '';
+  if (n.value === null) return `<div class="src-series">${label} ${n.date}: unavailable — ${esc((n.missing || []).map(m => m.reason).join('; '))}</div>`;
+  const c = n.components;
+  return `<div class="src-series">${label} <strong>${n.date}</strong>: WALCL ${c.WALCL.toLocaleString()}M ÷ 1e6 − WDTGAL ${c.WDTGAL.toLocaleString()}M ÷ 1e6 − RRPONTSYD ${c.RRPONTSYD}B ÷ 1,000 = <strong>$${n.value.toFixed(6)}T</strong></div>`;
+}
+function renderSourcePanel() {
+  const panel = document.getElementById('l1h-src');
+  if (!l1View.selected) { panel.hidden = true; panel.innerHTML = ''; return; }
+  const [key, metric] = l1View.selected.split(':');
+  const row = rowsForDisplay().find(r => r.key === key);
+  if (!row) { panel.hidden = true; return; }
+  const c = row.cells[metric] || {}, R = L1Core.RULES[metric];
+  const title = { m2Level:'US M2 level', signal:'L1 signal' }[metric] || R.label;
+  let body = '';
+  if (metric === 'signal') {
+    const s = row.sig;
+    body = `<p>${s.bull} bullish · ${s.neut} neutral · ${s.bear} bearish · ${s.na} missing (of ${s.total}). Rule: Bullish if ≥4 bullish; Bearish if ≥3 bearish; Neutral otherwise. If missing inputs could change the outcome, the signal is <em>Insufficient data</em>.</p>
+      <p>Row L1 score: ${row.score.score === null ? `not computed (needs ≥${L1Core.L1_MIN_INPUTS} inputs, has ${row.score.known})` : row.score.score.toFixed(2) + '/10 (bull 2, neutral 1, bear 0 points, averaged over available inputs)'}</p>`;
+  } else {
+    if (c.manual) body += `<p><strong>Manual value</strong> entered ${fmtTime(c.manual.at)}. It overrides the source value for the current row only. Source value: ${c.source && l1CellHasValue(metric, c.source) ? esc(L1_FMT[metric](c.source)) + ` (${c.source.date})` : 'unavailable'}.</p>`;
+    else if (!l1CellHasValue(metric, c)) body += `<p><strong>${c.state === 'pending' ? 'Not yet published' : 'Unavailable'}:</strong> ${esc(c.reason || 'no observation')}</p>`;
+    if (!c.manual && l1CellHasValue(metric, c)) {
+      if (metric === 'm2Level') body += seriesBlock('M2SL', c.date, c.raw);
+      if (metric === 'm2Trend') body += `<p>Formula: M2SL[${c.date.slice(0, 7)}] ÷ M2SL[${c.base.date.slice(0, 7)}] − 1 = ${c.raw.toLocaleString()} ÷ ${c.base.raw.toLocaleString()} − 1 = <strong>${signedFmt(c.value * 100, 3)}%</strong> (flat band ±0.1%)</p>` + seriesBlock('M2SL', c.date, c.raw);
+      if (metric === 'rrp') body += seriesBlock('RRPONTSYD', c.date, c.raw);
+      if (metric === 'tga') body += seriesBlock('WDTGAL', c.date, c.raw) + '<p class="src-note">TGA uses WDTGAL (Wednesday level) so it aligns with WALCL. WTREGEN (week average) is not used.</p>';
+      if (metric === 'ry') body += seriesBlock('DFII10', c.date, c.raw);
+      if (metric === 'walcl') body += seriesBlock('WALCL', c.date, c.raw) + `<p>13-week change: WALCL[${c.date}] ÷ WALCL[${c.base.date}] − 1 = ${fin(c.qoq) ? `<strong>${signedFmt(c.qoq * 100, 3)}%</strong>` : `unavailable (${esc(c.qoqReason || 'no base observation')})`}</p>`;
+      if (metric === 'nlm') {
+        body += `<p>NLM = net liquidity(Wed) − net liquidity(Wed − 8 weeks). Net liquidity ($T) = WALCL/1e6 − WDTGAL/1e6 − RRPONTSYD/1,000, all three on the <em>same</em> Wednesday. Analytical proxy only. It is not a proven lead indicator for BTC.</p>`
+          + netBlock(c.end, 'End') + netBlock(c.start, 'Start') + `<p>NLM = <strong>${signedFmt(c.value, 6)} $T</strong></p>`
+          + (c.skipped && c.skipped.length ? `<p class="src-note">Later Wednesdays not computable: ${esc(c.skipped.map(s => `${s.date} (${s.reason})`).join('; '))}</p>` : '')
+          + ['WALCL', 'WDTGAL', 'RRPONTSYD'].map(id => seriesBlock(id, c.date, c.end.components[id])).join('');
+      }
+    }
+    if (R) body += `<p class="src-note">Badge: Bullish ${esc(R.bull)} · Bearish ${esc(R.bear)} · otherwise Neutral.</p>`;
+  }
+  body += `<p class="src-note">${row.current ? 'Current row: each metric shows its latest published observation; dates differ by metric.' : 'Historical row: last valid observation within the month (monthly M2: the observation for that month).'} Values are FRED's latest revised data, not what was known at the time; use ALFRED vintages for backtests.</p>`;
+  panel.innerHTML = `<div class="src-hd"><strong>${esc(title)} · ${esc(row.label)}</strong><button type="button" class="src-close" data-close="1" aria-label="Close source panel">✕</button></div>${body}`;
+  panel.hidden = false;
+}
+
+function initL1Table() {
+  loadFredCache();
+  document.querySelectorAll('#l1History .l1h-sort').forEach(btn => btn.addEventListener('click', () => {
+    const key = btn.dataset.sort;
+    if (l1View.sortKey === key) l1View.sortDir = l1View.sortDir === 'asc' ? 'desc' : 'asc';
+    else { l1View.sortKey = key; l1View.sortDir = key === 'date' ? 'asc' : 'desc'; }
+    renderL1Table();
+  }));
+  document.getElementById('l1History').addEventListener('click', ev => {
+    const btn = ev.target.closest('[data-cell],[data-close]');
+    if (!btn) return;
+    l1View.selected = btn.dataset.close || l1View.selected === btn.dataset.cell ? null : btn.dataset.cell;
+    renderL1Table();
+    if (l1View.selected) document.getElementById('l1h-src').scrollIntoView({ block:'nearest' });
+  });
+  document.getElementById('l1-clear').addEventListener('click', clearL1Overrides);
+  rebuildL1();
+  renderL1Table();
+}
+
+/* ============================================================
+   CHARTS: drawn only from retrieved data (no sample series).
+   If the chart library is unavailable, values still update; the chart
+   areas say so instead of blocking the page.
+   ============================================================ */
+const chartRefs = {};
+const CHARTS_OK = () => typeof Chart !== 'undefined';
+
+function chartNote(id, text) {
+  const canvas = document.getElementById(id); if (!canvas) return;
+  const box = canvas.closest('.chart-box, [data-chart-box]') || canvas.parentElement;
+  let note = box.querySelector('.chart-note');
+  if (!note) { note = document.createElement('div'); note.className = 'chart-note'; box.appendChild(note); }
+  note.textContent = text || ''; note.hidden = !text;
+}
+
+function makeChart(id, color, yLabel = '', refLine = null) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return null;
+  if (!CHARTS_OK()) { chartNote(id, 'Chart library unavailable; values above still update.'); return null; }
+  const datasets = [{ label: yLabel || id, data: [], borderColor: color, backgroundColor: color + '15', borderWidth: 1.8, pointRadius: 0, pointHoverRadius: 4, fill: true, tension: 0.35 }];
+  if (refLine !== null) datasets.push({ label:'Reference', data: [], refValue: refLine, borderColor:'#94a3b8', borderWidth:1, borderDash:[4,3], pointRadius:0, fill:false, tension:0 });
+  const chart = new Chart(ctx.getContext('2d'), {
+    type: 'line',
+    data: { labels: [], datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { displayColors: false, callbacks: {
+          title: items => items[0].label,
+          label: item => item.datasetIndex > 0 && item.dataset.refValue !== undefined ? null : (yLabel || '') + ' ' + Number(item.raw).toLocaleString(undefined, { maximumFractionDigits: 4 }) } }
+      },
+      scales: {
+        x: { grid: { color:'#f3f4f6', drawTicks:false }, ticks: { font:{ family:'Space Mono', size:8 }, color:'#6b7280', maxTicksLimit:6, maxRotation:0 } },
+        y: { grid: { color:'#f3f4f6', drawTicks:false }, ticks: { font:{ family:'Space Mono', size:8 }, color:'#6b7280', maxTicksLimit:4,
+             callback: v => Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + 'K' : Number(v).toFixed(Math.abs(v) < 1 ? 3 : 1) } }
+      }
+    }
+  });
+  chartRefs[id] = chart;
+  chartNote(id, 'Loading…');
+  return chart;
+}
+function setChart(id, labels, values, emptyText) {
+  const ch = chartRefs[id];
+  if (!ch) return;
+  ch.data.labels = labels;
+  ch.data.datasets[0].data = values;
+  ch.data.datasets.slice(1).forEach(ds => { if (ds.refValue !== undefined) ds.data = labels.map(() => ds.refValue); });
+  ch.update('none');
+  chartNote(id, values.length ? '' : emptyText || 'No data retrieved yet.');
+}
+
+function applyBTCChart(rows) {
+  const ch = chartRefs.btcMaster;
+  if (!rows.length) {
+    const e = src.entries['binance-klines'];
+    document.getElementById('btc-chart-subtitle').textContent = e && e.error ? 'BTC HISTORY UNAVAILABLE: ' + e.error.toUpperCase() : 'LOADING 180 DAYS OF DAILY BTC/USDT HISTORY…';
+    if (ch) setChart('btcMaster', [], [], 'No BTC history retrieved yet.');
+    return;
+  }
+  const values = rows.map(r => r.close / 1000);
+  const recent = rows.slice(-30);
+  const support = Math.min(...recent.map(r => r.low)) / 1000, resistance = Math.max(...recent.map(r => r.high)) / 1000;
+  document.getElementById('btcSupportLegend').lastChild.textContent = `30D low $${support.toFixed(1)}K`;
+  document.getElementById('btcResistanceLegend').lastChild.textContent = `30D high $${resistance.toFixed(1)}K`;
+  document.getElementById('btcMaster').setAttribute('aria-label', `BTC/USDT daily closes, ${rows[0].date} to ${rows[rows.length - 1].date}`);
+  document.getElementById('btc-chart-subtitle').textContent =
+    `BINANCE BTC/USDT · ${rows[0].date} → ${rows[rows.length - 1].date} (last bar = today, in progress) · 30D RANGE $${support.toFixed(1)}K–$${resistance.toFixed(1)}K`;
+  if (!ch) return;
+  ch.data.labels = rows.map(r => r.date);
+  ch.data.datasets[0].data = values;
+  ch.data.datasets[1].data = rows.map(() => support); ch.data.datasets[1].label = `30D low $${support.toFixed(1)}K`;
+  ch.data.datasets[2].data = rows.map(() => resistance); ch.data.datasets[2].label = `30D high $${resistance.toFixed(1)}K`;
+  ch.options.scales.y.min = Math.floor(Math.min(...values, support) * .94);
+  ch.options.scales.y.max = Math.ceil(Math.max(...values, resistance) * 1.06);
+  ch.update('none');
+  chartNote('btcMaster', '');
+}
+
+function renderCharts() {
+  applyBTCChart(liveCache.btcRows);
+  const P = k => (src.entries[k] && src.entries[k].parsed) || null;
+  const dx = P('yahoo-dxy');
+  setChart('dxyChart', dx ? dx.bars.map(b => b.date) : [], dx ? dx.bars.map(b => b.close) : [], src.relay === false ? 'Needs the local server (Open_BTC_Dashboard.cmd).' : 'No DXY history retrieved yet.');
+  const qq = P('yahoo-qqq');
+  const ratio = qq ? SourcesCore.btcQqqSeries(liveCache.btcRows, qq.bars) : [];
+  setChart('qqqChart', ratio.map(r => r.date), ratio.map(r => r.ratio), src.relay === false ? 'Needs the local server (Open_BTC_Dashboard.cmd).' : 'Needs both BTC and QQQ history.');
+  const fh = P('binance-funding');
+  setChart('fundingChart', fh ? fh.rows.map(r => new Date(r.time).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit', hour12:false })) : [], fh ? fh.rows.map(r => r.rate * 100) : [], 'No funding history retrieved yet.');
+  // 10Y−2Y spread from FRED, only on dates where both yields exist
+  const d10 = fred.entries.DGS10 && fred.entries.DGS10.parsed, d2 = fred.entries.DGS2 && fred.entries.DGS2.parsed;
+  let sp = [];
+  if (d10 && d2) { const two = new Map(d2.rows); sp = d10.rows.filter(([d]) => two.has(d)).map(([d, v]) => [d, v - two.get(d)]).slice(-90); }
+  setChart('spreadChart', sp.map(r => r[0]), sp.map(r => r[1]), src.relay === false ? 'Needs the local server (Open_BTC_Dashboard.cmd).' : 'No FRED yield data retrieved yet.');
+}
+
+function initCharts() {
+  const master = makeChart('btcMaster', '#f7931a', 'BTC $K');
+  if (master) {
+    master.data.datasets[0].backgroundColor = 'rgba(247,147,26,0.08)';
+    master.data.datasets.push(
+      { label:'30D low', data:[], borderColor:'#10b981', borderWidth:1.2, borderDash:[4,3], pointRadius:0, fill:false },
+      { label:'30D high', data:[], borderColor:'#ef4444', borderWidth:1.2, borderDash:[4,3], pointRadius:0, fill:false });
+    master.options.scales.y.ticks.callback = v => '$' + v + 'K';
+    master.options.plugins.legend = { display:true, labels:{ boxWidth:10, font:{ size:10, family:'Space Mono' }, color:'#4b5563' } };
+    master.update('none');
+  }
+  makeChart('dxyChart', '#10b981', '');
+  makeChart('spreadChart', '#f59e0b', '%', 0);
+  makeChart('qqqChart', '#10b981', '');
+  makeChart('fundingChart', '#10b981', '%', 0);
+}
+
+/* ============================================================
+   TRADINGVIEW QUICK LAUNCH CARDS
+   ============================================================ */
+let tvCharts = [
+  {name:'BTC / USD',    sym:'BITSTAMP:BTCUSD',          val:'—', delta:'', col:'#374151', desc:'Daily chart', interval:'D'},
+  {name:'DXY Dollar',   sym:'TVC:DXY',                  val:'—', delta:'', col:'#374151', desc:'Weekly chart', interval:'W'},
+  {name:'10Y Yield',    sym:'TVC:US10Y',                val:'—', delta:'', col:'#374151', desc:'Weekly chart', interval:'W'},
+  {name:'BTC Dominance',sym:'CRYPTOCAP:BTC.D',          val:'—', delta:'', col:'#374151', desc:'Weekly chart', interval:'W'},
+  {name:'Fed (WALCL)',  sym:'FRED:WALCL',               val:'—', delta:'', col:'#374151', desc:'Monthly chart', interval:'M'},
+  {name:'Yield Spread', sym:'TVC:US10Y-TVC:US02Y',      val:'—', delta:'', col:'#374151', desc:'Weekly chart', interval:'W'},
+  {name:'BTC / QQQ',    sym:'BITSTAMP:BTCUSD/NASDAQ:QQQ',val:'—', delta:'', col:'#374151', desc:'Weekly chart', interval:'W'},
+  {name:'M2 Money',     sym:'FRED:M2SL',                val:'—', delta:'', col:'#374151', desc:'Monthly chart', interval:'M'},
+  {name:'Real Yield',   sym:'FRED:DFII10',              val:'—', delta:'', col:'#374151', desc:'Weekly chart', interval:'W'},
+];
+
+function syncTradingViewCards() {
+  const update = (name, patch) => { const card = tvCharts.find(c => c.name === name); if (card) Object.assign(card, patch); };
+  const na = { val:'—', delta:'No data', col:'#374151' };
+  update('BTC / USD', has(state.btc) ? { val: formatUSD(state.btc) + ' (USDT)', delta: has(state.btcChange) ? `${state.btcChange >= 0 ? '+' : ''}${state.btcChange.toFixed(2)}%` : '', col: (state.btcChange || 0) >= 0 ? '#047857' : '#b91c1c', desc:'Daily · Live BTC/USDT spot and 24-hour move from Binance' } : na);
+  update('DXY Dollar', has(state.dxy) ? { val: state.dxy.toFixed(2), delta: has(state.dxyChange) ? `${state.dxyChange >= 0 ? '+' : ''}${state.dxyChange.toFixed(2)}%` : '', col: (state.dxyChange || 0) <= 0 ? '#047857' : '#b91c1c', desc:'Daily · Latest available close from Yahoo Finance' } : na);
+  update('10Y Yield', has(state.tenY) ? { val: state.tenY.toFixed(2) + '%', delta:'Latest', col:'#b45309', desc:'CBOE ^TNX via Yahoo Finance · latest price' } : na);
+  update('BTC Dominance', has(state.btcd) ? { val: state.btcd.toFixed(2) + '%', delta: manualKeys.has('btcd') ? 'Manual' : 'Live', col:'#047857', desc:'Share of total crypto market cap from CoinGecko' } : na);
+  const cur = effectiveCurrentRow(), wc = cur && cur.cells.walcl, m2 = cur && cur.cells.m2Level, ryc = cur && cur.cells.ry;
+  update('Fed (WALCL)', has(state.walcl) ? { val: '$' + state.walcl.toFixed(2) + 'T', delta: wc && wc.manual ? 'Manual' : wc && wc.date ? 'Wed ' + wc.date : '', col:'#374151', desc:'FRED WALCL · weekly Wednesday level (H.4.1)' } : na);
+  update('Yield Spread', has(state.ys) ? { val: (state.ys >= 0 ? '+' : '') + state.ys.toFixed(2) + '%', delta:'10Y−2Y', col:'#b45309', desc: state.ysDate ? `FRED DGS10 − DGS2 on ${state.ysDate}` : 'Manual value' } : na);
+  update('BTC / QQQ', has(state.qqq) ? { val: state.qqq.toFixed(2), delta:'Ratio', col:'#374151', desc:`BTC spot divided by QQQ latest close${has(state.qqqPrice) ? ` ($${state.qqqPrice.toFixed(2)})` : ''}` } : na);
+  update('M2 Money', has(state.m2Level) ? { val: '$' + state.m2Level.toFixed(2) + 'T', delta: state.m2 > 0 ? 'Rising' : state.m2 < 0 ? 'Falling' : state.m2 === 0 ? 'Flat' : '', col:'#374151', desc:`FRED M2SL (US M2) · ${m2 && m2.date ? L1Core.monthLabel(m2.date.slice(0, 7)) : ''} observation` } : na);
+  update('Real Yield', has(state.ry) ? { val: state.ry.toFixed(2) + '%', delta: ryc && ryc.manual ? 'Manual' : ryc && ryc.date ? ryc.date : '', col:'#b45309', desc:'FRED DFII10 · 10-year TIPS yield' } : na);
+  buildTVCards();
+}
+
+function buildTVCards() {
+  const container = document.getElementById('tvCards');
+  if (!container) return;
+  container.innerHTML = tvCharts.map(c => {
+    const url = `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(c.sym)}&interval=${c.interval}`;
+    return `<a class="tv-card" href="${url}" target="_blank" rel="noopener">
+      <div class="tv-card-top">
+        <div>
+          <div class="tv-card-name">${c.name}</div>
+          <div class="tv-card-sym">${c.sym}</div>
+        </div>
+        <div class="tv-card-arrow">↗</div>
+      </div>
+      <div class="tv-card-val" style="color:${c.col}">${c.val} <span style="font-size:10px">${c.delta}</span></div>
+      <div class="tv-card-desc">${c.desc}</div>
+    </a>`;
+  }).join('');
+}
+
+/* ============================================================
+   REFRESH
+   On every opening: saved data renders first, then every automatic source is
+   requested at once and each one updates the page when it arrives.
+   Afterwards a single 30-second scheduler refreshes each source when its own
+   interval has passed (Binance spot 1 min … FRED by publication schedule),
+   and immediately when the tab becomes visible again or the network returns.
+   "Refresh All" forces every source. Nothing runs twice in parallel.
+   ============================================================ */
+let refreshing = false;
+let renderQueued = false;
+function scheduleRender() {
+  if (renderQueued) return;
+  renderQueued = true;
+  setTimeout(() => { renderQueued = false; renderAll(); }, 30);
+}
+function safe(fn, label) { try { fn(); } catch (e) { console.error(`${label} failed:`, e); } }
+function renderAll() {
+  safe(refreshDerivedData, 'derived values');
+  safe(renderSourceMetas, 'source details');
+  safe(renderCharts, 'charts');
+  safe(updateAlerts, 'alerts');
+  safe(renderStatusPill, 'status');
+}
+
+function groupState(keys) {
+  const now = Date.now(), sts = keys.map(k => SourcesCore.status(k, src.entries[k], now));
+  if (sts.every(s => s === 'live' || s === 'latest' || s === 'snapshot')) return 'ok';
+  if (sts.some(s => s === 'loading')) return 'loading';
+  if (sts.every(s => s === 'unavailable')) return 'failed';
+  return 'partial';
+}
+function renderStatusPill() {
+  const groups = {
+    Binance: groupState(SRC_KEYS.filter(k => SourcesCore.SRC[k].group === 'Binance')),
+    CoinGecko: groupState(SRC_KEYS.filter(k => SourcesCore.SRC[k].group === 'CoinGecko')),
+    Yahoo: groupState(SRC_KEYS.filter(k => SourcesCore.SRC[k].group === 'Yahoo'))
+  };
+  const fr = FRED_IDS.map(id => freshnessOf(id).state);
+  groups.FRED = !fred.attempted && fr.some(s => s === 'unavailable') ? 'loading'
+    : fr.every(s => s === 'latest') ? 'ok' : fr.every(s => s === 'unavailable') ? 'failed' : 'partial';
+  Object.entries(groups).forEach(([g, s]) => { sourceState[g] = s === 'ok' ? 'live' : s === 'partial' ? 'cached' : false; });
+  const ok = Object.values(groups).filter(s => s === 'ok').length, loading = Object.values(groups).some(s => s === 'loading');
+  const pill = document.getElementById('dataStatus');
+  const mark = { ok:'✓', partial:'◐', failed:'✕', loading:'…' };
+  const snapMode = src.mode === 'snapshot';   // hosted copy: never "LIVE" (FRED/Yahoo are 30-min snapshots)
+  pill.textContent = (snapMode ? (ok === 4 ? 'SNAPSHOT MODE · ALL 4 SOURCES CURRENT' : loading ? 'SNAPSHOT MODE · LOADING' : `SNAPSHOT MODE · PARTIAL · ${ok}/4 CURRENT`)
+                               : ok === 4 ? 'LIVE · ALL 4 SOURCES' : loading ? 'LOADING SOURCES' : `PARTIAL · ${ok}/4 SOURCES CURRENT`) + ' · ' +
+    Object.entries(groups).map(([g, s]) => `${g} ${mark[s]}`).join(' ');
+  document.getElementById('livePill').classList.toggle('partial', ok !== 4);
+  const errs = [...SRC_KEYS.map(k => src.entries[k] && src.entries[k].error ? `${SourcesCore.SRC[k].group} ${SourcesCore.SRC[k].instrument}: ${src.entries[k].error}` : null),
+                ...FRED_IDS.map(id => fred.entries[id] && fred.entries[id].error ? `FRED ${id}: ${fred.entries[id].error}` : null)].filter(Boolean);
+  pill.title = (snapMode ? `Snapshot mode (no local server): FRED and Yahoo come from files published every ${SourcesCore.SNAPSHOT_INTERVAL_MS / 60e3} min (stale after twice that); Binance and CoinGecko are read directly.\n` : '') +
+    '✓ current · ◐ partly cached/stale · ✕ unavailable. FRED values are latest published observations, not intraday.' +
+    (errs.length ? '\nLast refresh errors (last valid values retained):\n' + errs.join('\n') : '') + '\nMVRV is manual.';
+  const lastOk = Math.max(0, ...SRC_KEYS.map(k => Date.parse((src.entries[k] && !src.entries[k].fromCache && src.entries[k].checkedAt) || 0)),
+                          ...FRED_IDS.map(id => Date.parse((fred.entries[id] && fred.entries[id].checkedAt) || 0)));
+  const missing = Object.entries(groups).filter(([, s]) => s !== 'ok').map(([g]) => g);
+  document.getElementById('lastUpdated').textContent = (lastOk ? 'Last successful check: ' + fmtStamp(lastOk) : 'No successful check yet this session') +
+    (missing.length ? ` · not current: ${missing.join(', ')}` : '') + ' · MVRV manual';
+}
+
+async function loadManual() {
+  if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
+  try {
+    const r = await fetch('data/manual.json', { cache:'no-store', signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return;
+    const m = (await r.json() || {}).mvrv;
+    const valid = m && typeof m.value === 'number' && Number.isFinite(m.value) && m.value > -5 && m.value < 20 && /^\d{4}-\d{2}-\d{2}$/.test(m.date || '');
+    manual.mvrv = valid ? { value: m.value, date: m.date } : null;      // null value = not entered: never a default
+  } catch (e) { /* unreadable or invalid file: keep the previous value */ }
+}
+async function refreshAllSources(force) {
+  const jobs = SRC_KEYS.map(k => refreshSource(k, force));
+  jobs.push(loadManual().then(scheduleRender));
+  jobs.push(loadFREDData(force).catch(() => {}).then(scheduleRender));
+  await Promise.allSettled(jobs);
+}
+async function fullRefresh() {
+  if (refreshing) return;
+  refreshing = true;
+  const btn = document.getElementById('refreshBtn'), icon = document.getElementById('rIcon');
+  btn.disabled = true;
+  icon.style.cssText = 'display:inline-block;animation:spin .7s linear infinite';
+  try {
+    if (src.relay !== true) await detectRelay();
+    await refreshAllSources(true);
+  } finally {
+    btn.disabled = false;
+    icon.style.cssText = '';
+    refreshing = false;
+    renderAll();
+  }
+}
+function tick() {
+  if (document.hidden || refreshing) return;
+  const now = Date.now();
+  SRC_KEYS.forEach(k => {
+    const e = src.entries[k], S = SourcesCore.SRC[k];
+    const last = (e && e.attemptedAt) || 0;
+    if (now - last >= S.every && !(e && e.nextAllowedAt && now < e.nextAllowedAt)) refreshSource(k);
+  });
+  if (FRED_IDS.some(id => fredDue(id, now))) loadFREDData(false).catch(() => {}).then(scheduleRender);
+}
+
+/* ============================================================
+   INIT: each step is isolated so one failure (e.g. no chart library
+   when offline) cannot stop data loading.
+   ============================================================ */
+let schedulerStarted = false;
+document.addEventListener('DOMContentLoaded', () => {
+  safe(() => { document.getElementById('dashboardDate').textContent = new Date().toLocaleDateString('en-IN', { month:'long', day:'2-digit', year:'numeric' }).toUpperCase(); }, 'date');
+  safe(initCharts, 'charts');
+  safe(loadSourceCache, 'source cache');
+  safe(initL1Table, 'Layer 1 table');            // also restores the validated FRED cache
+  safe(buildTVCards, 'TradingView cards');
+  renderAll();                                    // saved data appears immediately, labelled Cached
+  (async () => {
+    try { await fullRefresh(); }                  // every automatic source, every opening
+    finally {
+      if (!schedulerStarted) {
+        schedulerStarted = true;
+        setInterval(tick, 30e3);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+        window.addEventListener('online', () => { detectRelay().then(tick); });
+      }
+    }
+  })();
+});
+</script>
+</body>
+</html>

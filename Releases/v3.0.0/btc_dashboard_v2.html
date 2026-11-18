@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTC Macro Dashboard v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f8f9fb;color:#0f1117;font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+.wrap{max-width:1200px;margin:0 auto;padding:2rem 1.5rem 3rem}
+/* Header */
+.header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;border-bottom:1px solid #e5e7eb;padding-bottom:1.25rem}
+.logo-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.btc-c{width:34px;height:34px;background:#f7931a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:#fff}
+.ht{font-size:20px;font-weight:700;letter-spacing:-0.02em}.ht span{color:#f7931a}
+.hs{font-size:11px;color:#9ca3af;font-family:'Space Mono',monospace;letter-spacing:.06em;margin-top:2px}
+.hdr{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.live-pill{display:inline-flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:#059669;background:#f0fdf4;border:1px solid #bbf7d0;padding:4px 10px;border-radius:99px}
+.live-dot{width:6px;height:6px;background:#10b981;border-radius:50%;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.refresh-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#f7931a;color:#fff;border:none;border-radius:8px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.refresh-btn:hover{opacity:.85}
+.refresh-btn:disabled{opacity:.5;cursor:not-allowed}
+.lu{font-size:10px;color:#9ca3af;font-family:'Space Mono',monospace}
+/* Hero */
+.hero{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.hcard{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px;position:relative;overflow:hidden}
+.hcard::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.hc1::after{background:#f7931a}.hc2::after{background:#d97706}.hc3::after{background:#059669}.hc4::after{background:#3b82f6}
+.hc-lbl{font-size:10px;font-family:'Space Mono',monospace;color:#9ca3af;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.hc-v{font-size:22px;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:-0.02em;color:#0f1117}
+.hc-sm{font-size:16px;font-weight:700;color:#0f1117}
+.hc-sub{font-size:11px;color:#6b7280;margin-top:5px;line-height:1.4}
+/* Score bar */
+.score-bar-wrap{margin-top:8px}
+.score-bar-bg{height:5px;background:#f3f4f6;border-radius:99px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#ef4444 0%,#f59e0b 40%,#10b981 100%);transition:width .6s ease}
+/* Layer */
+.layer{margin-bottom:2rem}
+.lhdr{display:flex;align-items:center;gap:12px;margin-bottom:1rem;flex-wrap:wrap}
+.lbadge{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.l1b{background:#3b82f6}.l2b{background:#d97706}.l3b{background:#059669}
+.lt{font-size:15px;font-weight:700;letter-spacing:-0.01em}
+.lp{font-size:10px;color:#6b7280;font-family:'Space Mono',monospace;letter-spacing:.04em;margin-top:2px}
+.lv{margin-left:auto;padding:4px 12px;border-radius:99px;font-size:10px;font-family:'Space Mono',monospace;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.bull-v{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+.bear-v{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+.neut-v{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+/* Grids */
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.g2>*,.g3>*,.g4>*{min-width:0}
+/* Ind block */
+.iblock{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .2s}
+.iblock:hover{border-color:#d1d5db;transform:translateY(-1px)}
+.iblock.bull{border-left:3px solid #10b981}
+.iblock.bear{border-left:3px solid #ef4444}
+.iblock.neut{border-left:3px solid #f59e0b}
+.ib-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.ibt{font-size:12.5px;font-weight:700;color:#0f1117}
+.ibs{font-size:9.5px;color:#9ca3af;font-family:'Space Mono',monospace;letter-spacing:.04em;margin-top:1px}
+.badge{padding:2px 8px;border-radius:99px;font-size:9px;font-family:'Space Mono',monospace;font-weight:700;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0;white-space:nowrap}
+.bull-b{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+.bear-b{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+.neut-b{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+.ib-vr{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.ib-val{font-size:18px;font-weight:700;font-family:'Space Mono',monospace;color:#0f1117;transition:color .3s}
+.ib-val.loading{color:#d1d5db}
+.ib-dlt{font-size:11px;font-family:'Space Mono',monospace}
+.chart-box{height:80px;position:relative;margin:6px 0}
+.chart-box canvas{display:block}
+.ib-logic{font-size:10.5px;color:#6b7280;line-height:1.5;padding-top:7px;border-top:1px solid #f3f4f6}
+.ib-logic strong{color:#374151;font-weight:600}
+/* Input row for live editing */
+.input-row{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:6px;border-top:1px solid #f3f4f6}
+.input-row label{font-size:10px;color:#9ca3af;font-family:'Space Mono',monospace;letter-spacing:.05em;flex-shrink:0}
+.input-row input{flex:1;min-width:0;padding:4px 8px;font-size:12px;font-family:'Space Mono',monospace;border:1px solid #e5e7eb;border-radius:6px;background:#f9fafb;color:#0f1117;outline:none;transition:border-color .2s}
+.input-row input:focus{border-color:#f7931a}
+.upd-btn{padding:3px 8px;font-size:10px;font-family:'Space Mono',monospace;font-weight:700;border:none;border-radius:5px;background:#f7931a;color:#fff;cursor:pointer;flex-shrink:0}
+.upd-btn:hover{opacity:.85}
+/* Layer 1 history table */
+.l1h{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.l1h-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.l1h-t{font-size:13px;font-weight:700;color:#0f1117}
+.l1h-s{font-size:10px;color:#6b7280;font-family:'Space Mono',monospace;letter-spacing:.04em;margin-top:2px}
+.l1h-legend{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.l1h-rules{margin-top:8px;font-size:11px;color:#4b5563}
+.l1h-rules summary{cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#374151;letter-spacing:.04em;padding:2px 4px;border-radius:4px;width:max-content}
+.l1h-rules summary:hover{color:#0f1117;background:#f3f4f6}
+.l1h-rules summary:focus-visible{outline:2px solid #c2410c;outline-offset:2px}
+.l1h-rules ul{margin:6px 0 0 18px;line-height:1.6}
+.l1h-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e5e7eb;border-radius:8px;margin-top:10px}
+.l1h table{width:100%;border-collapse:separate;border-spacing:0;min-width:900px;font-size:12px;color:#0f1117}
+.l1h th{background:#f9fafb;border-bottom:1px solid #e5e7eb;padding:0;white-space:nowrap;text-align:right}
+.l1h td{padding:8px 10px;border-bottom:1px solid #f3f4f6;text-align:right;white-space:nowrap;font-family:'Space Mono',monospace;background:#fff;transition:background .15s}
+.l1h th:first-child,.l1h td:first-child{text-align:left;position:sticky;left:0;z-index:1}
+.l1h th:first-child{z-index:2}
+.l1h td:first-child{font-family:'Inter',sans-serif;font-weight:600;border-right:1px solid #f3f4f6}
+.l1h tbody tr:last-child td{border-bottom:none}
+.l1h tbody tr:hover td{background:#f8fafc}
+.l1h tr.cur td{background:#fff7ed;border-top:2px solid #f7931a;font-weight:700}
+.l1h tr.cur:hover td{background:#ffedd5}
+.l1h tr.cur td:first-child{color:#9a3412}
+/* Sort buttons — default / hover / focus / active(sorted) / pressed */
+.l1h-sort{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;gap:4px;width:100%;padding:8px 10px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#4b5563;background:transparent;cursor:pointer}
+.l1h th:first-child .l1h-sort{justify-content:flex-start}
+.l1h-sort:hover{background:#f3f4f6;color:#0f1117}
+.l1h-sort:focus-visible{outline:2px solid #c2410c;outline-offset:-2px}
+.l1h-sort[aria-pressed="true"]{background:#fff7ed;color:#9a3412}
+.l1h-sort:active{background:#ffedd5;color:#7c2d12}
+.l1h-sort .arr{font-size:9px;color:inherit}
+/* Value badges (not uppercase so numbers read naturally) */
+.vb{display:inline-block;padding:2px 8px;border-radius:99px;border:1px solid;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;white-space:nowrap}
+.vb.bull{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
+.vb.bear{background:#fef2f2;color:#991b1b;border-color:#fecaca}
+.vb.neut{background:#fffbeb;color:#92400e;border-color:#fde68a}
+.vb.na{background:#f3f4f6;color:#4b5563;border-color:#e5e7eb}
+.vb .q{font-weight:400;opacity:.9}
+.vb.sig{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;padding:3px 10px}
+.vb.sig .cnt{text-transform:none;font-weight:400;margin-left:4px}
+.l1h-foot{font-size:10px;color:#6b7280;margin-top:8px;line-height:1.5}
+/* Layer 1 data states (contrast ≥4.5:1 for all text) */
+.na-v{background:#f3f4f6;color:#374151;border:1px solid #e5e7eb}
+.na-b{background:#f3f4f6;color:#374151;border:1px solid #e5e7eb}
+.iblock.nodata{border-left:3px solid #d1d5db}
+.ib-dlt{color:#4b5563}
+.l1h-s.err{color:#b91c1c}
+.l1h tbody th{text-align:left;position:sticky;left:0;z-index:1;background:#fff;padding:8px 10px;border-bottom:1px solid #f3f4f6;border-right:1px solid #f3f4f6;font-weight:600;white-space:nowrap;font-size:12px;transition:background .15s}
+.l1h tbody tr:hover th{background:#f8fafc}
+.l1h tr.cur th{background:#fff7ed;border-top:2px solid #f7931a;color:#9a3412;font-weight:700}
+.l1h tr.cur:hover th{background:#ffedd5}
+.l1h tbody tr:last-child th{border-bottom:none}
+.l1h .od{display:block;font-size:9.5px;font-weight:400;color:#4b5563;margin-top:3px;font-family:'Space Mono',monospace}
+button.vb{font-family:'Space Mono',monospace;cursor:pointer;line-height:1.4}
+button.vb:hover{border-color:currentColor}
+button.vb:focus-visible{outline:2px solid #c2410c;outline-offset:1px}
+button.vb[aria-pressed="true"]{box-shadow:0 0 0 2px #0f1117}
+button.vb:active{filter:brightness(.96)}
+.vb.pend{background:#eff6ff;color:#1e40af;border-color:#bfdbfe;font-weight:400}
+.vb.na{font-weight:400}
+.vb.plain{background:transparent;color:#0f1117;border-color:transparent}
+.vb.plain:hover{border-color:#d1d5db}
+.vb.stale{border-style:dashed}
+.l1h-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.chip{font-family:'Space Mono',monospace;font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid;text-decoration:none;white-space:nowrap}
+.chip:hover{text-decoration:underline}
+.chip:focus-visible{outline:2px solid #c2410c;outline-offset:1px}
+.chip.latest{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
+.chip.cached{background:#eff6ff;color:#1e40af;border-color:#bfdbfe}
+.chip.stale{background:#fffbeb;color:#92400e;border-color:#fde68a}
+.chip.unavailable{background:#fef2f2;color:#991b1b;border-color:#fecaca}
+.l1h-src{margin-top:10px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;font-size:11.5px;color:#1f2937;line-height:1.55}
+.l1h-src p{margin:6px 0}
+.l1h-src a,.l1h-foot a{color:#1d4ed8}
+.l1h-src a:focus-visible,.l1h-foot a:focus-visible{outline:2px solid #c2410c;outline-offset:1px}
+.src-hd{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.src-close{all:unset;cursor:pointer;padding:2px 8px;border-radius:4px;color:#374151;font-size:13px}
+.src-close:hover{background:#e5e7eb;color:#0f1117}
+.src-close:focus-visible{outline:2px solid #c2410c}
+.src-series{margin:6px 0;padding:6px 8px;background:#fff;border:1px solid #f3f4f6;border-radius:6px;font-family:'Space Mono',monospace;font-size:10.5px;overflow-wrap:anywhere}
+.src-note{color:#4b5563;font-size:10.5px}
+.src-err{color:#b91c1c}
+.l1h-foot{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.l1h-clear{padding:4px 10px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;border:1px solid #fdba74;border-radius:6px;background:#fff;color:#9a3412;cursor:pointer}
+.l1h-clear:hover{background:#fff7ed;color:#7c2d12}
+.l1h-clear:focus-visible{outline:2px solid #c2410c;outline-offset:1px}
+.l1h-clear:active{background:#ffedd5}
+/* compact cells so all 9 columns fit the 1200px layout */
+.l1h td{padding:7px 5px}
+.l1h tbody th{padding:7px 8px}
+.l1h .vb{padding:2px 6px}
+.l1h-sort{padding:8px 5px}
+.l1h td .vb.pend,.l1h td .vb.na{white-space:normal;max-width:88px;line-height:1.25}
+.l1h .vb.sig{white-space:normal;max-width:120px}
+.l1h .od{white-space:normal;max-width:96px;margin-left:auto}
+.l1h tbody th .od{margin-left:0}
+/* Master BTC */
+.master-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin-bottom:1.5rem}
+.mc-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.mc-t{font-size:13px;font-weight:700}
+.mc-s{font-size:10px;color:#9ca3af;font-family:'Space Mono',monospace;letter-spacing:.06em;margin-top:2px}
+/* TradingView section */
+.tv-section{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin-bottom:1.5rem}
+.tv-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.tv-title{font-size:13px;font-weight:700}
+.tv-card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:13px 15px;cursor:pointer;transition:all .2s;text-decoration:none;display:block}
+.tv-card:hover{border-color:#f7931a;background:#fff7ed;transform:translateY(-1px)}
+.tv-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.tv-card-name{font-size:12px;font-weight:700;color:#0f1117}
+.tv-card-sym{font-size:9px;font-family:'Space Mono',monospace;color:#9ca3af;letter-spacing:.05em}
+.tv-card-val{font-size:15px;font-weight:700;font-family:'Space Mono',monospace}
+.tv-card-desc{font-size:10px;color:#6b7280;line-height:1.4;margin-top:4px}
+.tv-card-arrow{font-size:12px;color:#f7931a;margin-top:2px}
+/* Decision */
+.decision{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin-bottom:1.5rem}
+.d-title{font-size:10px;font-family:'Space Mono',monospace;color:#9ca3af;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+.d-hdr{display:grid;grid-template-columns:130px 1fr 1fr 100px;gap:8px;padding:6px 0;border-bottom:1px solid #e5e7eb;margin-bottom:2px}
+.d-row{display:grid;grid-template-columns:130px 1fr 1fr 100px;gap:8px;padding:8px 0;border-bottom:1px solid #f9fafb;align-items:center;font-size:11.5px}
+.d-row:last-child{border-bottom:none}
+.d-lbl{font-size:10px;font-family:'Space Mono',monospace;color:#9ca3af;letter-spacing:.06em}
+.d-name{font-weight:600;font-size:12px}
+.d-cond{color:#6b7280;line-height:1.4}
+.d-act{font-family:'Space Mono',monospace;font-size:11px;font-weight:700}
+/* Alerts */
+.alerts{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin-bottom:1.5rem}
+.a-row{display:grid;grid-template-columns:120px 1fr 90px;gap:10px;padding:8px 0;border-bottom:1px solid #f9fafb;align-items:center;font-size:11.5px}
+.a-row:last-child{border-bottom:none}
+.a-cond{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:#374151}
+.a-desc{color:#6b7280;font-size:11px;line-height:1.4}
+/* Cycle */
+.cycle-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin-bottom:1.5rem}
+.cyc-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+.cyc-cell{padding:10px 12px;background:#f9fafb;border-radius:8px}
+.cyc-l{font-size:9.5px;font-family:'Space Mono',monospace;color:#9ca3af;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.cyc-v{font-size:14px;font-weight:700;color:#0f1117}
+.cyc-s{font-size:10px;color:#6b7280;margin-top:3px;line-height:1.4}
+/* Up / dn / nx */
+.up{color:#059669}.dn{color:#dc2626}.nx{color:#d97706}
+/* Loading */
+.loading-spinner{display:inline-block;width:12px;height:12px;border:2px solid #e5e7eb;border-top-color:#f7931a;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+/* Footer */
+.footer{margin-top:1.5rem;padding-top:1rem;border-top:1px solid #e5e7eb;font-size:10px;color:#9ca3af;font-family:'Space Mono',monospace;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.header,.hero,.master-card,.layer,.tv-section,.decision,.alerts,.cycle-card{animation:fadeUp .4s ease both}
+@media(max-width:900px){
+  .hero,.g4{grid-template-columns:repeat(2,1fr)}
+  .g2,.g3{grid-template-columns:1fr}
+  .d-hdr,.d-row{grid-template-columns:1fr 1fr}
+  .a-row{grid-template-columns:1fr 1fr}
+  .cyc-row{grid-template-columns:repeat(2,1fr)}
+  .tv-tabs{gap:4px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- Header -->
+<div class="header">
+  <div>
+    <div class="logo-row">
+      <div class="btc-c">₿</div>
+      <div class="ht">BTC <span>Macro</span> — 3-Layer System</div>
+    </div>
+    <div class="hs">LIQUIDITY · MARKET PRESSURE · CRYPTO INTERNALS &nbsp;·&nbsp; <span id="dashboardDate">CURRENT MARKET DATA</span></div>
+  </div>
+  <div class="hdr">
+    <div class="live-pill" id="livePill"><span class="live-dot"></span> <span id="dataStatus">Loading live data…</span></div>
+    <button class="refresh-btn" id="refreshBtn" onclick="fullRefresh()"><span id="rIcon">↻</span> Refresh All</button>
+    <div class="lu" id="lastUpdated">Fetching live data…</div>
+  </div>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hcard hc1">
+    <div class="hc-lbl">BTC Price (Live)</div>
+    <div class="hc-v" id="h-btc">—</div>
+    <div class="hc-sub" id="h-btc-change">Waiting for the latest BTC trade…</div>
+  </div>
+  <div class="hcard hc2">
+    <div class="hc-lbl">Cycle Phase</div>
+    <div class="hc-sm">Late-Cycle Accum.</div>
+    <div class="hc-sub">Month 24 post-halving · Next low Q4 2026 · 42% below $126K ATH</div>
+  </div>
+  <div class="hcard hc3">
+    <div class="hc-lbl">3-Layer Composite Score</div>
+    <div class="hc-v"><span id="compositeScore">—</span><span style="font-size:13px;color:#9ca3af"> / 10</span></div>
+    <div class="score-bar-wrap">
+      <div class="score-bar-bg"><div class="score-bar-fill" id="scoreBar" style="width:0%"></div></div>
+    </div>
+    <div class="hc-sub" id="scoreBreakdown">Waiting for data…</div>
+  </div>
+  <div class="hcard hc4">
+    <div class="hc-lbl">Action Signal</div>
+    <div class="hc-sm" id="actionSignal">—</div>
+    <div class="hc-sub" id="actionDesc">Waiting for data…</div>
+  </div>
+</div>
+
+<!-- Master BTC Chart -->
+<div class="master-card">
+  <div class="mc-hd">
+    <div>
+      <div class="mc-t">BTC/USD — 6-Month Context (Master Reference)</div>
+      <div class="mc-s" id="btc-chart-subtitle">LOADING 180 DAYS OF DAILY BTC/USD HISTORY…</div>
+    </div>
+    <div style="display:flex;gap:14px;font-size:10px;color:#6b7280;font-family:'Space Mono',monospace;flex-wrap:wrap">
+      <span><span style="display:inline-block;width:10px;height:3px;background:#f7931a;vertical-align:middle;margin-right:4px;border-radius:2px"></span>BTC Price</span>
+      <span id="btcSupportLegend"><span style="display:inline-block;width:10px;height:3px;background:#10b981;vertical-align:middle;margin-right:4px;border-radius:2px"></span>30D low</span>
+      <span id="btcResistanceLegend"><span style="display:inline-block;width:10px;height:3px;background:#ef4444;vertical-align:middle;margin-right:4px;border-radius:2px"></span>30D high</span>
+    </div>
+  </div>
+  <div style="height:200px;position:relative">
+    <canvas id="btcMaster" role="img" aria-label="BTC 6-month price chart from Oct 2025 to Apr 2026">BTC: Oct 126K → Feb 60K → Apr 76.5K recovery.</canvas>
+  </div>
+</div>
+
+<!-- TradingView Section -->
+<div class="tv-section">
+  <div class="tv-hd">
+    <div>
+      <div class="tv-title">TradingView — Quick Launch</div>
+      <div style="font-size:10px;color:#9ca3af;font-family:'Space Mono',monospace;margin-top:2px">CLICK ANY CARD TO OPEN LIVE CHART IN TRADINGVIEW</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px" id="tvCards"></div>
+</div>
+
+<!-- LAYER 1 -->
+<div class="layer">
+  <div class="lhdr">
+    <div class="lbadge l1b">L1</div>
+    <div>
+      <div class="lt">Layer 1 — Macro Liquidity</div>
+      <div class="lp">US FEDERAL RESERVE &amp; TREASURY DATA VIA FRED · ANALYTICAL PROXY, NOT A TIMING SIGNAL</div>
+    </div>
+    <div class="lv na-v" id="l1verdict">Awaiting data</div>
+  </div>
+  <!-- L1 12-month history table -->
+  <div class="l1h" id="l1History">
+    <div class="l1h-hd">
+      <div>
+        <div class="l1h-t">Layer 1 — 12-Month Liquidity History</div>
+        <div class="l1h-s" id="l1h-status">LOADING FRED DATA…</div>
+      </div>
+      <div class="l1h-legend" aria-label="Badge legend">
+        <span class="vb bull">Bullish</span><span class="vb neut">Neutral</span><span class="vb bear">Bearish</span><span class="vb pend">Not yet published</span><span class="vb na">Unavailable</span>
+      </div>
+    </div>
+    <div class="l1h-chips" id="l1h-chips" aria-label="FRED series freshness"></div>
+    <details class="l1h-rules">
+      <summary>Methodology &amp; badge rules</summary>
+      <ul>
+        <li><strong>Rows:</strong> the 12 completed calendar months plus the current partial month. Historical cells use the last valid observation within the month (monthly M2: that month's observation). The current row shows each metric's latest published observation, with its own date.</li>
+        <li><strong>NLM 8W Δ:</strong> change over 8 weeks in net liquidity = WALCL/1e6 − WDTGAL/1e6 − RRPONTSYD/1,000 ($T), with all three on the same Wednesday. If any input is missing for that Wednesday (e.g. a holiday), the value is unavailable and is not carried forward. This is an analytical proxy, not a proven lead indicator.</li>
+        <li><strong>Bullish:</strong> M2 3-month change &gt; +0.1% · NLM &gt; +0.1T · RRP &lt; $500B · TGA &lt; $600B · Real yield &lt; 1.5% · WALCL 13-week change &gt; 0</li>
+        <li><strong>Bearish:</strong> M2 &lt; −0.1% · NLM &lt; −0.1T · RRP &gt; $1,000B · TGA &gt; $800B · Real yield &gt; 2.5% · WALCL &lt; −3%. <strong>Neutral:</strong> in between.</li>
+        <li><strong>L1 Signal:</strong> Bullish if ≥4 of 6 bullish; Bearish if ≥3 bearish; otherwise Neutral. If missing inputs could change the result, it shows Insufficient data. <strong>L1 score:</strong> bull 2 / neutral 1 / bear 0 points averaged over available inputs (needs ≥4).</li>
+        <li>Historical values are FRED's latest revised observations, not real-time vintages. Use ALFRED for backtests. Click any value to see its source.</li>
+      </ul>
+    </details>
+    <div class="l1h-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col" aria-sort="ascending"><button class="l1h-sort" data-sort="date" aria-pressed="true">Date <span class="arr" aria-hidden="true">▲</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="m2Level" aria-pressed="false">US M2 ($T) <span class="arr" aria-hidden="true">↕</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="m2Trend" aria-pressed="false">M2 Trend (3M %) <span class="arr" aria-hidden="true">↕</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="nlm" aria-pressed="false">NLM 8W Δ ($T) <span class="arr" aria-hidden="true">↕</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="rrp" aria-pressed="false">RRP ($B) <span class="arr" aria-hidden="true">↕</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="tga" aria-pressed="false">TGA ($B) <span class="arr" aria-hidden="true">↕</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="ry" aria-pressed="false">Real Yield (%) <span class="arr" aria-hidden="true">↕</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="walcl" aria-pressed="false">WALCL ($T · 13W %) <span class="arr" aria-hidden="true">↕</span></button></th>
+            <th scope="col"><button class="l1h-sort" data-sort="signal" aria-pressed="false">L1 Signal <span class="arr" aria-hidden="true">↕</span></button></th>
+          </tr>
+        </thead>
+        <tbody id="l1h-body"></tbody>
+      </table>
+    </div>
+    <div class="l1h-src" id="l1h-src" hidden aria-live="polite"></div>
+    <div class="l1h-foot">
+      <span>Sources: FRED series <a href="https://fred.stlouisfed.org/series/M2SL" target="_blank" rel="noopener">M2SL</a>, <a href="https://fred.stlouisfed.org/series/WALCL" target="_blank" rel="noopener">WALCL</a>, <a href="https://fred.stlouisfed.org/series/WDTGAL" target="_blank" rel="noopener">WDTGAL</a>, <a href="https://fred.stlouisfed.org/series/RRPONTSYD" target="_blank" rel="noopener">RRPONTSYD</a>, <a href="https://fred.stlouisfed.org/series/DFII10" target="_blank" rel="noopener">DFII10</a>. Manual <strong>Set</strong> values apply to the current row only and are marked ✎.</span>
+      <button type="button" class="l1h-clear" id="l1-clear" hidden>Clear manual values</button>
+    </div>
+  </div>
+  <div class="g2" style="margin-bottom:12px">
+    <!-- US M2 -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">US M2 Money Stock</div><div class="ibs">FRED:M2SL · MONTHLY · 3-MONTH TREND</div></div>
+        <span class="badge na-b" id="m2-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="m2-val">—</span><span class="ib-dlt" id="m2-date">Loading…</span></div>
+      <div class="ib-logic"><strong>Signal:</strong> rising US M2 (3-month change &gt; +0.1%) is a liquidity tailwind. This is US M2, not a global liquidity measure. M2 is published about 3–4 weeks after month end.</div>
+      <div class="input-row">
+        <label for="in-m2">M2 Trend:</label>
+        <input id="in-m2" type="number" step="1" min="-1" max="1" placeholder="1=Rising 0=Flat -1=Falling">
+        <button class="upd-btn" onclick="updateIndicator('m2',parseFloat(document.getElementById('in-m2').value))">Set</button>
+      </div>
+    </div>
+    <!-- NLM -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">Net Liquidity Momentum (NLM)</div><div class="ibs">WALCL−TGA−RRP · SAME-WEDNESDAY · 8-WEEK Δ</div></div>
+        <span class="badge na-b" id="nlm-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="nlm-val">—</span><span class="ib-dlt" id="nlm-date">Loading…</span></div>
+      <div class="ib-logic"><strong>Signal:</strong> NLM &gt; +0.1T bullish, &lt; −0.1T bearish. This is an analytical proxy for system liquidity. Any lead over BTC is not established here, so don't use it as a timing signal.</div>
+      <div class="input-row">
+        <label for="in-nlm">NLM $T:</label>
+        <input id="in-nlm" type="number" step="0.01" placeholder="8-week change, $T">
+        <button class="upd-btn" onclick="updateIndicator('nlm',parseFloat(document.getElementById('in-nlm').value))">Set</button>
+      </div>
+    </div>
+  </div>
+  <div class="g4">
+    <!-- RRP -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">Reverse Repo (RRP)</div><div class="ibs">FRED:RRPONTSYD · DAILY</div></div>
+        <span class="badge na-b" id="rrp-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="rrp-val">—</span><span class="ib-dlt" id="rrp-date">Loading…</span></div>
+      <div class="ib-logic"><strong>↓ RRP = cash leaving the Fed facility for markets.</strong> &lt; $500B bullish, &gt; $1,000B bearish. Near zero, there is little left to release.</div>
+      <div class="input-row">
+        <label for="in-rrp">RRP $B:</label>
+        <input id="in-rrp" type="number" step="0.01" placeholder="Billions">
+        <button class="upd-btn" onclick="updateIndicator('rrp',parseFloat(document.getElementById('in-rrp').value))">Set</button>
+      </div>
+    </div>
+    <!-- TGA -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">TGA (Treasury Acct)</div><div class="ibs">FRED:WDTGAL · WEDNESDAY LEVEL</div></div>
+        <span class="badge na-b" id="tga-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="tga-val">—</span><span class="ib-dlt" id="tga-date">Loading…</span></div>
+      <div class="ib-logic"><strong>↓ TGA = Treasury spending cash into the system.</strong> &lt; $600B bullish, &gt; $800B bearish. Wednesday level, matched to WALCL.</div>
+      <div class="input-row">
+        <label for="in-tga">TGA $B:</label>
+        <input id="in-tga" type="number" step="1" placeholder="Billions">
+        <button class="upd-btn" onclick="updateIndicator('tga',parseFloat(document.getElementById('in-tga').value))">Set</button>
+      </div>
+    </div>
+    <!-- Real Yield -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">10Y Real Yield</div><div class="ibs">FRED:DFII10 · DAILY</div></div>
+        <span class="badge na-b" id="ry-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="ry-val">—</span><span class="ib-dlt" id="ry-date">Loading…</span></div>
+      <div class="ib-logic"><strong>↓ Real yield = BTC tailwind.</strong> &lt; 1.5% bullish, &gt; 2.5% bearish. Higher real yields make cash and TIPS more competitive.</div>
+      <div class="input-row">
+        <label for="in-ry">Real Yield %:</label>
+        <input id="in-ry" type="number" step="0.01" placeholder="Percent">
+        <button class="upd-btn" onclick="updateIndicator('ry',parseFloat(document.getElementById('in-ry').value))">Set</button>
+      </div>
+    </div>
+    <!-- WALCL -->
+    <div class="iblock nodata">
+      <div class="ib-hd">
+        <div><div class="ibt">Fed Balance Sheet</div><div class="ibs">FRED:WALCL · WEDNESDAY LEVEL</div></div>
+        <span class="badge na-b" id="walcl-badge">No data</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="walcl-val">—</span><span class="ib-dlt" id="walcl-date">Loading…</span></div>
+      <div class="ib-logic"><strong>Badge uses the 13-week change:</strong> rising = bullish, falling more than 3% = bearish (QT pace), otherwise neutral.</div>
+      <div class="input-row">
+        <label for="in-walcl">WALCL $T:</label>
+        <input id="in-walcl" type="number" step="0.01" placeholder="Trillions">
+        <button class="upd-btn" onclick="updateIndicator('walcl',parseFloat(document.getElementById('in-walcl').value))">Set</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYER 2 -->
+<div class="layer">
+  <div class="lhdr">
+    <div class="lbadge l2b">L2</div>
+    <div>
+      <div class="lt">Layer 2 — Market Pressure &amp; Flow (Fast Signals)</div>
+      <div class="lp">CONFIRMS OR INVALIDATES MACRO · COINCIDENT INDICATORS</div>
+    </div>
+    <div class="lv bull-v" id="l2verdict">Bullish</div>
+  </div>
+  <div class="g3">
+    <!-- DXY -->
+    <div class="iblock bull">
+      <div class="ib-hd">
+        <div><div class="ibt">DXY (US Dollar Index)</div><div class="ibs">INVERSE TO BTC</div></div>
+        <span class="badge bull-b" id="dxy-badge">Bullish</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="dxy-val">98.31</span><span class="ib-dlt up" id="dxy-delta">Latest available close</span></div>
+      <div class="chart-box"><canvas id="dxyChart" role="img" aria-label="DXY falling to 98.31 over 12 weeks">DXY 3-week decline.</canvas></div>
+      <div class="ib-logic"><strong>↓ DXY = ↑ BTC.</strong> 3rd weekly decline. Iran ceasefire easing safe-haven demand. Best: BTC Z &lt; −1 AND DXY Z &gt; +1. Current: aligned bullish.</div>
+      <div class="input-row">
+        <label>DXY:</label>
+        <input id="in-dxy" type="number" step="0.01" placeholder="Index value">
+        <button class="upd-btn" onclick="updateIndicator('dxy',parseFloat(document.getElementById('in-dxy').value))">Set</button>
+      </div>
+    </div>
+    <!-- Yield Spread -->
+    <div class="iblock neut">
+      <div class="ib-hd">
+        <div><div class="ibt">Yield Spread (10Y−2Y)</div><div class="ibs">TVC:US10Y−TVC:US02Y</div></div>
+        <span class="badge neut-b" id="ys-badge">Neutral</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="ys-val">+0.44%</span><span class="ib-dlt up" id="ys-delta">Latest available spread</span></div>
+      <div class="chart-box"><canvas id="spreadChart" role="img" aria-label="Yield spread steepening to 0.44 percent">Spread steepening.</canvas></div>
+      <div class="ib-logic"><strong>↑ Spread = easier future policy expected.</strong> Positive and steepening from 2022-23 inversion. Not strongly bullish yet. Watch &gt;+1% sustained for conviction.</div>
+      <div class="input-row">
+        <label>Spread %:</label>
+        <input id="in-ys" type="number" step="0.01" placeholder="Percent">
+        <button class="upd-btn" onclick="updateIndicator('ys',parseFloat(document.getElementById('in-ys').value))">Set</button>
+      </div>
+    </div>
+    <!-- BTC/QQQ -->
+    <div class="iblock bull">
+      <div class="ib-hd">
+        <div><div class="ibt">BTC / QQQ Ratio</div><div class="ibs">BITSTAMP:BTCUSD / NASDAQ:QQQ</div></div>
+        <span class="badge bull-b" id="qqq-badge">Bullish</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="qqq-val">3.12</span><span class="ib-dlt up" id="qqq-delta">Waiting for QQQ close</span></div>
+      <div class="chart-box"><canvas id="qqqChart" role="img" aria-label="BTC QQQ ratio recovering to 3.12">BTC outperforming Nasdaq.</canvas></div>
+      <div class="ib-logic"><strong>↑ BTC/QQQ = BTC outperforming equities.</strong> Early bull signal. Still below 4.5+ peaks. Room to run if institutional inflows continue. QQQ ~$475.</div>
+      <div class="input-row">
+        <label>BTC/QQQ:</label>
+        <input id="in-qqq" type="number" step="0.01" placeholder="Ratio">
+        <button class="upd-btn" onclick="updateIndicator('qqq',parseFloat(document.getElementById('in-qqq').value))">Set</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYER 3 -->
+<div class="layer">
+  <div class="lhdr">
+    <div class="lbadge l3b">L3</div>
+    <div>
+      <div class="lt">Layer 3 — Crypto Internals (Timing Layer)</div>
+      <div class="lp">ENTRY/EXIT PRECISION · SENTIMENT &amp; POSITIONING</div>
+    </div>
+    <div class="lv bull-v" id="l3verdict">Mixed-bullish</div>
+  </div>
+  <div class="g4">
+    <!-- MVRV -->
+    <div class="iblock neut">
+      <div class="ib-hd">
+        <div><div class="ibt">MVRV Z-Score</div><div class="ibs">MARKET vs REALIZED VALUE · MANUAL</div></div>
+        <span class="badge neut-b" id="mvrv-badge">Fair Value</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="mvrv-val">~1.2</span></div>
+      <div class="chart-box"><canvas id="mvrvChart" role="img" aria-label="MVRV Z-score at 1.2 neutral zone">MVRV fair value zone.</canvas></div>
+      <div class="ib-logic"><strong>Zones:</strong> &lt;−0.3 = Accumulate · 1-2 = Neutral · &gt;3 = Take profits · &gt;6 = Exit. Current 1.2 = fair-value. Watch for drop &lt;0.5.</div>
+      <div class="input-row">
+        <label>MVRV Z:</label>
+        <input id="in-mvrv" type="number" step="0.1" placeholder="Z-Score">
+        <button class="upd-btn" onclick="updateIndicator('mvrv',parseFloat(document.getElementById('in-mvrv').value))">Set</button>
+      </div>
+    </div>
+    <!-- BTC.D -->
+    <div class="iblock bull">
+      <div class="ib-hd">
+        <div><div class="ibt">BTC.D + USDT.D</div><div class="ibs">DOMINANCE MATRIX</div></div>
+        <span class="badge bull-b" id="btcd-badge">BTC Rally</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="btcd-val">57.8%</span><span class="ib-dlt up" id="btcd-delta">Live market share</span></div>
+      <div class="chart-box"><canvas id="domChart" role="img" aria-label="BTC dominance rising to 57.8 percent">BTC.D rising.</canvas></div>
+      <div class="ib-logic"><strong>Matrix:</strong> BTC.D↑ USDT.D↓ = BTC rally · Both↓ = Altseason · BTC.D↓ USDT.D↑ = Cashing out. Current: BTC.D↑, USDT.D flat → <strong>BTC rally setup.</strong></div>
+      <div class="input-row">
+        <label>BTC.D %:</label>
+        <input id="in-btcd" type="number" step="0.1" placeholder="Dominance %">
+        <button class="upd-btn" onclick="updateIndicator('btcd',parseFloat(document.getElementById('in-btcd').value))">Set</button>
+      </div>
+    </div>
+    <!-- SSR -->
+    <div class="iblock bull">
+      <div class="ib-hd">
+        <div><div class="ibt">Stablecoin Supply Ratio</div><div class="ibs">BTC MCAP / STABLE SUPPLY</div></div>
+        <span class="badge bull-b" id="ssr-badge">Accumulate</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="ssr-val">~8.5</span><span class="ib-dlt dn" id="ssr-delta">Waiting for stablecoin supply</span></div>
+      <div class="chart-box"><canvas id="ssrChart" role="img" aria-label="SSR falling to 8.5, accumulation signal">SSR falling.</canvas></div>
+      <div class="ib-logic"><strong>SSR↓ + BTC flat = ACCUMULATE.</strong> Both↑ = Rally thinning. Peaking = Distribution. Both↓ = Wait. Current: dry powder building into flat price = <strong>classic pre-rally setup.</strong></div>
+      <div class="input-row">
+        <label>SSR:</label>
+        <input id="in-ssr" type="number" step="0.1" placeholder="Ratio">
+        <button class="upd-btn" onclick="updateIndicator('ssr',parseFloat(document.getElementById('in-ssr').value))">Set</button>
+      </div>
+    </div>
+    <!-- Funding -->
+    <div class="iblock bull">
+      <div class="ib-hd">
+        <div><div class="ibt">Funding Rate + OI</div><div class="ibs">LEVERAGE · CROWDEDNESS</div></div>
+        <span class="badge bull-b" id="fund-badge">Squeeze Setup</span>
+      </div>
+      <div class="ib-vr"><span class="ib-val" id="fund-val">−0.01%</span><span class="ib-dlt up" id="fund-delta">Waiting for latest funding</span></div>
+      <div class="chart-box"><canvas id="fundingChart" role="img" aria-label="Funding rate negative for 46 consecutive days">Negative funding.</canvas></div>
+      <div class="ib-logic"><strong>Negative funding = shorts crowded.</strong> 46+ days negative. Apr 18 $762M squeeze confirmed dynamic. Not crowded longs = low top-risk. High OI + rising price = strong trend.</div>
+      <div class="input-row">
+        <label>Funding %:</label>
+        <input id="in-fund" type="number" step="0.001" placeholder="Rate %">
+        <button class="upd-btn" onclick="updateIndicator('fund',parseFloat(document.getElementById('in-fund').value)/100)">Set</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Decision matrix -->
+<div class="decision">
+  <div class="d-title">Decision Matrix by Condition</div>
+  <div class="d-hdr">
+    <span class="d-lbl">Condition</span>
+    <span class="d-lbl">Layer 1 (Liquidity)</span>
+    <span class="d-lbl">Layer 2 (Flow)</span>
+    <span class="d-lbl">Action</span>
+  </div>
+  <div class="d-row"><span class="d-name up">Strong Buy</span><span class="d-cond">M2↑ NLM green RRP/TGA↓</span><span class="d-cond">DXY↓ BTC/QQQ↑</span><span class="d-act up">ADD 2× NORMAL</span></div>
+  <div class="d-row" id="dm-current" style="background:#fffbeb;border-radius:6px"><span class="d-name nx">Accumulate (now)</span><span class="d-cond">Mixed · NLM turning ↑</span><span class="d-cond">DXY↓ BTC/QQQ recovering</span><span class="d-act nx">DCA / HOLD CORE</span></div>
+  <div class="d-row"><span class="d-name dn">Take Profits</span><span class="d-cond">MVRV Z&gt;3 · M2 flattening</span><span class="d-cond">DXY↑ BTC/QQQ rolling over</span><span class="d-act dn">REDUCE 30-50%</span></div>
+  <div class="d-row"><span class="d-name dn">Exit Aggressively</span><span class="d-cond">MVRV Z&gt;6 · NLM red</span><span class="d-cond">DXY strong↑ Spread inverting</span><span class="d-act dn">CASH / USDT</span></div>
+  <div class="d-row"><span class="d-name" style="color:#6b7280">Wait / Avoid</span><span class="d-cond">NLM grey · M2 sideways</span><span class="d-cond">DXY choppy</span><span class="d-act nx">SIDELINE</span></div>
+</div>
+
+<!-- Alerts -->
+<div class="alerts">
+  <div class="d-title">Active Alerts &amp; Triggers</div>
+  <div class="a-row"><span class="a-cond">NLM 8W Δ &gt; +0.1T</span><span class="a-desc">8-week change in Wednesday-aligned net liquidity (WALCL − TGA − RRP) above +$0.1T. Computed from the Layer 1 current row.</span><span class="badge na-b" id="alert-nlm-badge">No data</span></div>
+  <div class="a-row"><span class="a-cond">BTC &gt; $78,800</span><span class="a-desc">Break above key daily resistance — targets $82K then $94K YTD open</span><span class="badge neut-b">Watching</span></div>
+  <div class="a-row"><span class="a-cond">BTC &lt; $70,000</span><span class="a-desc">Base re-test zone — invalidates recovery structure · stop-loss trigger</span><span class="badge neut-b">Watching</span></div>
+  <div class="a-row"><span class="a-cond">MVRV Z &gt; 3.0</span><span class="a-desc">Take-profits trigger — currently ~1.2 (safe). Update value above to auto-alert.</span><span class="badge bull-b">Safe (1.2)</span></div>
+  <div class="a-row"><span class="a-cond">DXY &gt; 100</span><span class="a-desc">Dollar strength returning — invalidates Layer 2 bullish thesis</span><span class="badge bull-b">Safe (98.3)</span></div>
+  <div class="a-row"><span class="a-cond">Altseason Idx &gt;75</span><span class="a-desc">Rotate BTC profits into alts — currently 34/100 (no altseason)</span><span class="badge neut-b">Watching (34)</span></div>
+</div>
+
+<!-- Cycle Context -->
+<div class="cycle-card">
+  <div class="d-title">Halving Cycle Context &amp; Indicator Links</div>
+  <div class="cyc-row">
+    <div class="cyc-cell"><div class="cyc-l">Post-Halving Month</div><div class="cyc-v">Month 24</div><div class="cyc-s">Late-cycle / distribution zone · Cycle 4 (Apr 2024)</div></div>
+    <div class="cyc-cell"><div class="cyc-l">ATH &amp; Drawdown</div><div class="cyc-v">$126K (Oct '25)</div><div class="cyc-s">−39% from ATH · Topped on apathy not euphoria</div></div>
+    <div class="cyc-cell"><div class="cyc-l">Next Expected Low</div><div class="cyc-v">Q4 2026</div><div class="cyc-s">Historical 4-yr cycle · Potential $40K · 70% max drawdown</div></div>
+    <div class="cyc-cell"><div class="cyc-l">Diminishing Returns</div><div class="cyc-v">+97% (cycle 4)</div><div class="cyc-s">vs +560% cycle 3 · Peak ~2.5–4× fair value (log regression)</div></div>
+  </div>
+  <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+    <a href="https://www.bitcoinmagazinepro.com/charts/mvrv-zscore/" target="_blank" style="font-size:11px;font-family:'Space Mono',monospace;color:#3b82f6;text-decoration:none;padding:5px 10px;border:1px solid #bfdbfe;border-radius:6px;background:#eff6ff">MVRV Z-Score</a>
+    <a href="https://cryptoquant.com/asset/btc/chart/market-indicator/stablecoin-supply-ratio-ssr" target="_blank" style="font-size:11px;font-family:'Space Mono',monospace;color:#3b82f6;text-decoration:none;padding:5px 10px;border:1px solid #bfdbfe;border-radius:6px;background:#eff6ff">SSR (CryptoQuant)</a>
+    <a href="https://coinalyze.net/bitcoin/open-interest/" target="_blank" style="font-size:11px;font-family:'Space Mono',monospace;color:#3b82f6;text-decoration:none;padding:5px 10px;border:1px solid #bfdbfe;border-radius:6px;background:#eff6ff">OI + Funding</a>
+    <a href="https://chartinspect.com/charts/pi-cycle-top" target="_blank" style="font-size:11px;font-family:'Space Mono',monospace;color:#3b82f6;text-decoration:none;padding:5px 10px;border:1px solid #bfdbfe;border-radius:6px;background:#eff6ff">Pi Cycle Top</a>
+    <a href="https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html" target="_blank" style="font-size:11px;font-family:'Space Mono',monospace;color:#3b82f6;text-decoration:none;padding:5px 10px;border:1px solid #bfdbfe;border-radius:6px;background:#eff6ff">CME FedWatch</a>
+    <a href="https://chartinspect.com/charts/profit-loss" target="_blank" style="font-size:11px;font-family:'Space Mono',monospace;color:#3b82f6;text-decoration:none;padding:5px 10px;border:1px solid #bfdbfe;border-radius:6px;background:#eff6ff">BTC Bottom (Profit/Loss)</a>
+  </div>
+</div>
+
+<div class="footer">
+  <span>LIVE: Binance (BTC price/history/funding) · CoinGecko (dominance) · FRED (macro series, via local relay serve.py) · Yahoo Finance (DXY/QQQ)</span>
+  <span>Not financial advice · Educational only</span>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script id="l1-core">
+/* ============================================================
+   L1 CORE: pure data logic for Layer 1 (no DOM, no network).
+   tests/l1_core.test.mjs extracts and runs this block; keep it self-contained.
+   Methodology: DATA_SOURCES.md
+   ============================================================ */
+(function (root) {
+'use strict';
+
+const SERIES = {
+  M2SL:      { name:'US M2 money stock', freq:'monthly', release:'H.6 Money Stock Measures', publisher:'Board of Governors of the Federal Reserve System',
+               native:'Billions of US$, seasonally adjusted, monthly', display:'$T', factor:1/1000, conversion:'÷ 1,000 (billions → trillions)', min:1000, max:100000 },
+  WALCL:     { name:'Fed total assets (Wednesday level)', freq:'weekly', release:'H.4.1 Factors Affecting Reserve Balances', publisher:'Board of Governors of the Federal Reserve System',
+               native:'Millions of US$, Wednesday level, NSA', display:'$T', factor:1/1e6, conversion:'÷ 1,000,000 (millions → trillions)', min:1e5, max:5e7 },
+  WDTGAL:    { name:'Treasury General Account (Wednesday level)', freq:'weekly', release:'H.4.1 Factors Affecting Reserve Balances', publisher:'Board of Governors of the Federal Reserve System',
+               native:'Millions of US$, Wednesday level, NSA', display:'$B', factor:1/1000, conversion:'÷ 1,000 (millions → billions)', min:0, max:5e6 },
+  RRPONTSYD: { name:'Overnight reverse repo (Treasury securities sold)', freq:'daily', release:'Temporary Open Market Operations', publisher:'Federal Reserve Bank of New York',
+               native:'Billions of US$, daily, NSA', display:'$B', factor:1, conversion:'none (already billions)', min:0, max:10000, sameDay:true },
+  DFII10:    { name:'10-year TIPS real yield', freq:'daily', release:'H.15 Selected Interest Rates', publisher:'Board of Governors of the Federal Reserve System',
+               native:'Percent, daily, NSA', display:'%', factor:1, conversion:'none (percent)', min:-10, max:20 },
+  DGS10:     { name:'10-year Treasury yield', freq:'daily', release:'H.15 Selected Interest Rates', publisher:'Board of Governors of the Federal Reserve System',
+               native:'Percent, daily, NSA', display:'%', factor:1, conversion:'none (percent)', min:-5, max:25 },
+  DGS2:      { name:'2-year Treasury yield', freq:'daily', release:'H.15 Selected Interest Rates', publisher:'Board of Governors of the Federal Reserve System',
+               native:'Percent, daily, NSA', display:'%', factor:1, conversion:'none (percent)', min:-5, max:25 }
+};
+Object.keys(SERIES).forEach(id => { SERIES[id].id = id; SERIES[id].url = 'https://fred.stlouisfed.org/series/' + id; });
+
+/* ---------- dates (all YYYY-MM-DD strings, UTC arithmetic) ---------- */
+const DAY = 86400000;
+const toMs = s => Date.parse(s + 'T00:00:00Z');
+const fromMs = ms => new Date(ms).toISOString().slice(0, 10);
+const addDays = (s, n) => fromMs(toMs(s) + n * DAY);
+const weekday = s => new Date(s + 'T00:00:00Z').getUTCDay();
+const isIsoDate = s => /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(toMs(s)) && fromMs(toMs(s)) === s;
+const addMonths = (key, n) => { const [y, m] = key.split('-').map(Number); const t = y * 12 + (m - 1) + n; return `${Math.floor(t / 12)}-${String(t % 12 + 1).padStart(2, '0')}`; };
+const monthEnd = key => { const [y, m] = key.split('-').map(Number); return fromMs(Date.UTC(y, m, 0)); };
+const monthLabel = key => { const [y, m] = key.split('-').map(Number); return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-US', { month:'short', year:'numeric', timeZone:'UTC' }); };
+
+// US Eastern wall clock as a sortable "YYYY-MM-DD HH:MM" stamp.
+function etStamp(nowMs) {
+  const f = new Intl.DateTimeFormat('en-CA', { timeZone:'America/New_York', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hourCycle:'h23' });
+  const p = Object.fromEntries(f.formatToParts(new Date(nowMs)).map(x => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}`;
+}
+
+/* ---------- Federal Reserve holidays ----------
+   Sunday holidays are observed Monday. Saturday holidays are NOT observed on Friday
+   (Federal Reserve Banks stay open that Friday). */
+function nthWeekday(y, month0, wd, n) {
+  if (n > 0) { const first = new Date(Date.UTC(y, month0, 1)).getUTCDay(); return fromMs(Date.UTC(y, month0, 1 + ((wd - first + 7) % 7) + (n - 1) * 7)); }
+  const last = Date.UTC(y, month0 + 1, 0); return fromMs(last - ((new Date(last).getUTCDay() - wd + 7) % 7) * DAY);
+}
+const holidayCache = {};
+function fedHolidays(y) {
+  if (holidayCache[y]) return holidayCache[y];
+  const fixed = ['01-01', '06-19', '07-04', '11-11', '12-25'].map(md => `${y}-${md}`)
+    .map(s => weekday(s) === 0 ? addDays(s, 1) : s).filter(s => weekday(s) !== 6);
+  const floating = [nthWeekday(y, 0, 1, 3), nthWeekday(y, 1, 1, 3), nthWeekday(y, 4, 1, -1), nthWeekday(y, 8, 1, 1), nthWeekday(y, 9, 1, 2), nthWeekday(y, 10, 4, 4)];
+  return (holidayCache[y] = new Set([...fixed, ...floating]));
+}
+const isBusinessDay = s => { const w = weekday(s); return w !== 0 && w !== 6 && !fedHolidays(Number(s.slice(0, 4))).has(s); };
+const nextBusinessDay = s => { let d = addDays(s, 1); while (!isBusinessDay(d)) d = addDays(d, 1); return d; };
+
+/* ---------- publication schedule ----------
+   dueStamp(id, period) = ET moment by which the observation should be on FRED,
+   including a grace margin for normal release-time variation. */
+function dueStamp(id, period) {
+  const f = SERIES[id].freq;
+  if (f === 'monthly') {                         // H.6: around the 4th Tuesday of the following month; +7 days grace
+    const next = addMonths(period, 1); const [y, m] = next.split('-').map(Number);
+    return addDays(nthWeekday(y, m - 1, 2, 4), 7) + ' 09:00';
+  }
+  if (f === 'weekly') return nextBusinessDay(nextBusinessDay(period)) + ' 09:00';   // H.4.1: Thursday 16:30 ET; +1 business day grace
+  if (SERIES[id].sameDay) return nextBusinessDay(period) + ' 12:00';               // NY Fed RRP: same afternoon; FRED by next day
+  return nextBusinessDay(nextBusinessDay(period)) + ' 09:00';                       // H.15: next business day ~16:15 ET; +grace
+}
+// Latest period whose observation is due by `nowMs` (date for daily/weekly, YYYY-MM for monthly).
+function expectedLatest(id, nowMs) {
+  const now = etStamp(nowMs), today = now.slice(0, 10), f = SERIES[id].freq;
+  if (f === 'monthly') { let k = addMonths(today.slice(0, 7), -1); while (dueStamp(id, k) > now) k = addMonths(k, -1); return k; }
+  let d = today;
+  if (f === 'weekly') { d = addDays(d, -((weekday(d) - 3 + 7) % 7)); while (dueStamp(id, d) > now) d = addDays(d, -7); return d; }
+  while (!isBusinessDay(d) || dueStamp(id, d) > now) d = addDays(d, -1);
+  return d;
+}
+
+/* ---------- CSV parsing + validation ---------- */
+function parseFredCsv(text, id) {
+  const spec = SERIES[id];
+  if (!spec) throw new Error(`unknown series ${id}`);
+  if (typeof text !== 'string' || !text.trim()) throw new Error('empty response');
+  const lines = text.replace(/^﻿/, '').trim().split(/\r?\n/);
+  const header = lines[0].trim();
+  if (header !== `observation_date,${id}` && header !== `DATE,${id}`) throw new Error(`unexpected CSV header "${header.slice(0, 60)}"`);
+  const rows = [], blanks = []; let prev = '';
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim(); if (!line) continue;
+    const parts = line.split(',');
+    if (parts.length !== 2) throw new Error(`line ${i + 1}: expected 2 columns`);
+    const [date, raw] = parts;
+    if (!isIsoDate(date)) throw new Error(`line ${i + 1}: invalid date "${date}"`);
+    if (date === prev) throw new Error(`duplicate observation ${date}`);
+    if (date < prev) throw new Error(`out-of-order observation ${date}`);
+    prev = date;
+    if (spec.freq === 'monthly' && date.slice(8) !== '01') throw new Error(`${date}: monthly observation not dated the 1st`);
+    if (spec.freq === 'weekly' && weekday(date) !== 3) throw new Error(`${date}: weekly observation not a Wednesday`);
+    if (raw === '' || raw === '.') { blanks.push(date); continue; }          // FRED missing-value markers
+    if (!/^-?\d+(\.\d+)?$/.test(raw)) throw new Error(`line ${i + 1}: non-numeric value "${raw}"`);
+    const v = Number(raw);
+    if (v < spec.min || v > spec.max) throw new Error(`${date}: ${v} outside plausible range for ${id} (${spec.native})`);
+    rows.push([date, v]);
+  }
+  if (!rows.length) throw new Error('no valid observations');
+  return { rows, blanks, lastRowDate: prev };
+}
+
+function makeIndex(parsed) {
+  return { byDate: new Map(parsed.rows), dates: parsed.rows.map(r => r[0]), blanks: new Set(parsed.blanks), lastRowDate: parsed.lastRowDate };
+}
+const valAt = (ix, d) => (ix && ix.byDate.has(d) ? ix.byDate.get(d) : null);   // 0 is a value, not missing
+function lastInRange(ix, from, to) {
+  if (!ix) return null;
+  let lo = 0, hi = ix.dates.length - 1, ans = -1;
+  while (lo <= hi) { const mid = (lo + hi) >> 1; if (ix.dates[mid] <= to) { ans = mid; lo = mid + 1; } else hi = mid - 1; }
+  if (ans < 0 || ix.dates[ans] < from) return null;
+  return { date: ix.dates[ans], value: ix.byDate.get(ix.dates[ans]) };
+}
+const lastObs = ix => (ix && ix.dates.length ? { date: ix.dates[ix.dates.length - 1], value: ix.byDate.get(ix.dates[ix.dates.length - 1]) } : null);
+
+// Why a single observation is missing.
+function missingReason(ds, id, date, nowStamp) {
+  const ix = ds[id];
+  if (!ix) return { state:'unavailable', reason:`${id} unavailable (request failed and no valid cache)` };
+  if (ix.blanks.has(date)) return { state:'unavailable', reason:`${id} has no observation on ${date} (FRED blank; ${isBusinessDay(date) ? 'not reported' : 'non-business day / holiday'})` };
+  const period = SERIES[id].freq === 'monthly' ? date.slice(0, 7) : date;
+  if (date > ix.lastRowDate && dueStamp(id, period) > nowStamp) return { state:'pending', reason:`${id} for ${SERIES[id].freq === 'monthly' ? monthLabel(period) : date} not yet published (due by ${dueStamp(id, period)} ET)` };
+  if (date > ix.lastRowDate) return { state:'unavailable', reason:`${id} for ${date} should be published but is not in the retrieved data (stale)` };
+  return { state:'unavailable', reason:`${id} has no observation on ${date}` };
+}
+
+/* ---------- derived metrics ---------- */
+const NLM_LOOKBACK_DAYS = 56;   // 8 weeks (existing project definition)
+const QOQ_LOOKBACK_DAYS = 91;   // 13 weeks
+const M2_TREND_MONTHS = 3, M2_FLAT_BAND = 0.001;
+
+// Net liquidity ($T) on one Wednesday; all three inputs must exist for that same date.
+function netLiquidity(ds, d, nowStamp) {
+  const w = valAt(ds.WALCL, d), t = valAt(ds.WDTGAL, d), r = valAt(ds.RRPONTSYD, d);
+  const missing = [];
+  if (w === null) missing.push(missingReason(ds, 'WALCL', d, nowStamp));
+  if (t === null) missing.push(missingReason(ds, 'WDTGAL', d, nowStamp));
+  if (r === null) missing.push(missingReason(ds, 'RRPONTSYD', d, nowStamp));
+  if (missing.length) return { value:null, date:d, missing };
+  return { value: w / 1e6 - t / 1e6 - r / 1000, date:d, components:{ WALCL:w, WDTGAL:t, RRPONTSYD:r } };
+}
+function nlmAt(ds, d, nowStamp) {
+  const end = netLiquidity(ds, d, nowStamp), start = netLiquidity(ds, addDays(d, -NLM_LOOKBACK_DAYS), nowStamp);
+  if (end.value === null || start.value === null) {
+    const miss = [...(end.missing || []), ...(start.missing || [])];
+    return { value:null, date:d, start, end, state: miss.some(m => m.state === 'pending') ? 'pending' : 'unavailable', reason: miss.map(m => m.reason).join('; ') };
+  }
+  return { value: end.value - start.value, date:d, start, end };
+}
+// Latest NLM on or before `to` (and not before `from`); records skipped Wednesdays.
+function nlmLatest(ds, from, to, nowStamp) {
+  const wal = ds.WALCL; if (!wal) return { value:null, state:'unavailable', reason: missingReason(ds, 'WALCL', to, nowStamp).reason };
+  const weds = wal.dates.filter(d => d >= from && d <= to);
+  const skipped = [];
+  for (let i = weds.length - 1; i >= 0; i--) {
+    const r = nlmAt(ds, weds[i], nowStamp);
+    if (r.value !== null) return Object.assign(r, { skipped });
+    skipped.push({ date: weds[i], reason: r.reason });
+  }
+  return { value:null, state:'unavailable', reason: skipped.length ? skipped.map(s => `${s.date}: ${s.reason}`).join(' | ') : `no WALCL observation between ${from} and ${to}`, skipped };
+}
+function m2Cell(ds, monthKey, nowStamp) {
+  const d = monthKey + '-01', v = valAt(ds.M2SL, d);
+  if (v === null) { const m = missingReason(ds, 'M2SL', d, nowStamp); return { level:{ value:null, ...m }, trend:{ value:null, ...m } }; }
+  const priorKey = addMonths(monthKey, -M2_TREND_MONTHS), pv = valAt(ds.M2SL, priorKey + '-01');
+  const level = { value: v / 1000, raw: v, date: d, series:'M2SL' };
+  if (pv === null) return { level, trend:{ value:null, ...missingReason(ds, 'M2SL', priorKey + '-01', nowStamp) } };
+  const pct = v / pv - 1;
+  return { level, trend:{ value: pct, dir: pct > M2_FLAT_BAND ? 1 : pct < -M2_FLAT_BAND ? -1 : 0, date: d, base:{ date: priorKey + '-01', raw: pv }, raw: v } };
+}
+function seriesCell(ds, id, obs, missingDate, nowStamp) {
+  if (!obs) return { value:null, ...missingReason(ds, id, missingDate, nowStamp), series:id };
+  return { value: obs.value * SERIES[id].factor, raw: obs.value, date: obs.date, series:id };
+}
+function walclCell(ds, obs, missingDate, nowStamp) {
+  const c = seriesCell(ds, 'WALCL', obs, missingDate, nowStamp);
+  if (c.value === null) return c;
+  const baseDate = addDays(obs.date, -QOQ_LOOKBACK_DAYS), base = valAt(ds.WALCL, baseDate);
+  c.base = { date: baseDate, raw: base };
+  c.qoq = base === null ? null : obs.value / base - 1;
+  if (base === null) c.qoqReason = missingReason(ds, 'WALCL', baseDate, nowStamp).reason;
+  return c;
+}
+
+/* ---------- classification + scoring ---------- */
+const RULES = {
+  m2Trend: { label:'M2 trend (3-month % change)', bull:'> +0.1% (rising)', bear:'< −0.1% (falling)', test: c => c.dir },
+  nlm:     { label:'NLM 8-week Δ', bull:'> +0.1T', bear:'< −0.1T', test: c => c.value > 0.1 ? 1 : c.value < -0.1 ? -1 : 0 },
+  rrp:     { label:'RRP', bull:'< $500B', bear:'> $1,000B', test: c => c.value < 500 ? 1 : c.value > 1000 ? -1 : 0 },
+  tga:     { label:'TGA', bull:'< $600B', bear:'> $800B', test: c => c.value < 600 ? 1 : c.value > 800 ? -1 : 0 },
+  ry:      { label:'10Y real yield', bull:'< 1.5%', bear:'> 2.5%', test: c => c.value < 1.5 ? 1 : c.value > 2.5 ? -1 : 0 },
+  walcl:   { label:'WALCL 13-week change', bull:'> 0% (rising)', bear:'< −3% QoQ', test: c => c.qoq > 0 ? 1 : c.qoq < -0.03 ? -1 : 0 }
+};
+const METRICS = Object.keys(RULES);
+function classify(metric, cell) {
+  if (!cell) return 'na';
+  if (metric === 'm2Trend') { if (cell.dir === undefined || cell.dir === null) return 'na'; }
+  else if (metric === 'walcl') { if (cell.qoq === null || cell.qoq === undefined || !Number.isFinite(cell.qoq)) return 'na'; }
+  else if (cell.value === null || cell.value === undefined || !Number.isFinite(cell.value)) return 'na';
+  const t = RULES[metric].test(cell); return t > 0 ? 'bull' : t < 0 ? 'bear' : 'neut';
+}
+// L1 signal: Bullish if ≥4 of 6 bullish; Bearish if ≥3 bearish; Neutral otherwise,
+// but only when missing inputs could not change that outcome ('insufficient').
+function signalFrom(classes) {
+  const v = Object.values(classes);
+  const bull = v.filter(x => x === 'bull').length, bear = v.filter(x => x === 'bear').length, na = v.filter(x => x === 'na').length;
+  let signal;
+  if (bull >= 4) signal = 'bull'; else if (bear >= 3) signal = 'bear';
+  else if (bull + na >= 4 || bear + na >= 3) signal = 'insufficient'; else signal = 'neut';
+  return { signal, bull, bear, neut: v.length - bull - bear - na, na, known: v.length - na, total: v.length };
+}
+// L1 score 0–10: bullish = 2, neutral = 1, bearish = 0 points, averaged over available inputs; needs ≥4 of 6.
+const L1_MIN_INPUTS = 4;
+function scoreFrom(classes) {
+  const v = Object.values(classes).filter(x => x !== 'na');
+  if (v.length < L1_MIN_INPUTS) return { score:null, known: v.length, total: Object.keys(classes).length };
+  const pts = v.reduce((s, x) => s + (x === 'bull' ? 2 : x === 'neut' ? 1 : 0), 0);
+  return { score: pts / (2 * v.length) * 10, known: v.length, total: Object.keys(classes).length };
+}
+function finalizeRow(row) {
+  row.classes = {}; METRICS.forEach(m => { row.classes[m] = classify(m, row.cells[m]); });
+  row.sig = signalFrom(row.classes); row.score = scoreFrom(row.classes);
+  return row;
+}
+
+/* ---------- table ---------- */
+function buildDataset(parsedById) {
+  const ds = {}; Object.entries(parsedById).forEach(([id, p]) => { if (p) ds[id] = makeIndex(p); }); return ds;
+}
+function monthRow(ds, key, nowStamp) {
+  const from = key + '-01', to = monthEnd(key), m2 = m2Cell(ds, key, nowStamp);
+  return finalizeRow({ key, label: monthLabel(key), current:false, cells: {
+    m2Level: m2.level, m2Trend: m2.trend,
+    nlm: nlmLatest(ds, from, to, nowStamp),
+    rrp: seriesCell(ds, 'RRPONTSYD', lastInRange(ds.RRPONTSYD, from, to), to, nowStamp),
+    tga: seriesCell(ds, 'WDTGAL', lastInRange(ds.WDTGAL, from, to), to, nowStamp),
+    ry:  seriesCell(ds, 'DFII10', lastInRange(ds.DFII10, from, to), to, nowStamp),
+    walcl: walclCell(ds, lastInRange(ds.WALCL, from, to), to, nowStamp)
+  } });
+}
+// Current (partial) month: each metric's latest published observation, with its own date.
+function currentRow(ds, key, nowStamp) {
+  const today = nowStamp.slice(0, 10), m2Last = lastObs(ds.M2SL);
+  const m2 = m2Last ? m2Cell(ds, m2Last.date.slice(0, 7), nowStamp) : m2Cell(ds, key, nowStamp);
+  return finalizeRow({ key, label: `${monthLabel(key)} (Current)`, current:true, cells: {
+    m2Level: m2.level, m2Trend: m2.trend,
+    nlm: nlmLatest(ds, addDays(today, -120), today, nowStamp),
+    rrp: seriesCell(ds, 'RRPONTSYD', lastObs(ds.RRPONTSYD), today, nowStamp),
+    tga: seriesCell(ds, 'WDTGAL', lastObs(ds.WDTGAL), today, nowStamp),
+    ry:  seriesCell(ds, 'DFII10', lastObs(ds.DFII10), today, nowStamp),
+    walcl: walclCell(ds, lastObs(ds.WALCL), today, nowStamp)
+  } });
+}
+// 12 completed calendar months + the current partial month.
+function buildTable(ds, nowMs) {
+  const nowStamp = etStamp(nowMs), cur = nowStamp.slice(0, 7);
+  const rows = [];
+  for (let i = 12; i >= 1; i--) rows.push(monthRow(ds, addMonths(cur, -i), nowStamp));
+  rows.push(currentRow(ds, cur, nowStamp));
+  return rows;
+}
+// Earliest date to request so every lookback for the oldest row is covered.
+function historyStart(nowMs) { return addMonths(etStamp(nowMs).slice(0, 7), -12 - M2_TREND_MONTHS - 2) + '-01'; }
+
+// Series freshness: 'latest' | 'cached' | 'stale' | 'unavailable'
+function seriesFreshness(id, entry, nowMs) {
+  if (!entry || !entry.parsed) return { state:'unavailable', expected: expectedLatest(id, nowMs) };
+  const expected = expectedLatest(id, nowMs), last = entry.parsed.lastRowDate;
+  const have = SERIES[id].freq === 'monthly' ? last.slice(0, 7) : last;
+  if (have < expected) return { state:'stale', expected, have };
+  return { state: entry.fromCache ? 'cached' : 'latest', expected, have };
+}
+
+root.L1Core = { SERIES, RULES, METRICS, NLM_LOOKBACK_DAYS, QOQ_LOOKBACK_DAYS, M2_TREND_MONTHS, L1_MIN_INPUTS,
+  toMs, addDays, addMonths, monthEnd, monthLabel, weekday, isBusinessDay, fedHolidays, nextBusinessDay, etStamp,
+  dueStamp, expectedLatest, parseFredCsv, buildDataset, valAt, lastInRange, netLiquidity, nlmAt, nlmLatest,
+  classify, signalFrom, scoreFrom, finalizeRow, monthRow, currentRow, buildTable, historyStart, seriesFreshness };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
+/* ============================================================
+   STATE — effective indicator values. null = not loaded / unavailable.
+   No seed numbers: an indicator only counts once it is loaded from a
+   source or entered manually with Set.
+   ============================================================ */
+const state = {
+  btc: null, btcChange: null,
+  // Layer 1 (synced from the current table row, incl. manual overrides)
+  m2: null,       // M2 3-month direction: 1 rising, 0 flat, -1 falling
+  m2Level: null,  // $T
+  nlm: null,      // 8-week change in aligned net liquidity, $T
+  rrp: null,      // $B
+  tga: null,      // $B
+  ry: null,       // %
+  walcl: null,    // $T
+  // Layer 2
+  dxy: null, dxyChange: null, tenY: null,
+  ys: null, ysDate: null, // 10Y−2Y on a common date, %
+  qqq: null, qqqPrice: null,
+  // Layer 3
+  mvrv: null,     // manual only (no unauthenticated public source)
+  btcd: null, ssr: null,
+  fund: null      // decimal
+};
+const manualKeys = new Set();   // L2/L3 keys set by hand (L1 uses l1Overrides)
+const has = v => v !== null && v !== undefined && Number.isFinite(v);
+
+/* ============================================================
+   SCORING ENGINE (see DATA_SOURCES.md)
+   L1: from the current-row badge classes (bull 2 / neutral 1 / bear 0), ≥4 of 6 inputs.
+   L2/L3: existing graded rules, averaged over available inputs only.
+   Composite: mean of the layers that have a score; partial coverage is shown.
+   ============================================================ */
+function layerScore(points, min) {
+  const v = points.filter(p => p !== null);
+  return { score: v.length >= min ? v.reduce((a, b) => a + b, 0) / (2 * v.length) * 10 : null, known: v.length, total: points.length };
+}
+function scorify() {
+  const cur = effectiveCurrentRow();
+  const l1 = cur ? cur.score : { score:null, known:0, total:6 };
+  const p = (v, f) => (has(v) ? f(v) : null);
+  const l2 = layerScore([
+    p(state.dxy, v => v < 98 ? 2 : v < 100 ? 1.5 : v < 102 ? 1 : 0),
+    p(state.ys,  v => v > 1.0 ? 2 : v > 0.3 ? 1.5 : v > 0 ? 1 : 0),
+    p(state.qqq, v => v > 140 ? 2 : v > 110 ? 1.5 : v > 90 ? 1 : 0)
+  ], 2);
+  const l3 = layerScore([
+    p(state.mvrv, v => v < 0 ? 2 : v < 1.5 ? 1.5 : v < 3 ? 1 : 0),
+    p(state.btcd, v => v > 58 ? 2 : v > 55 ? 1.5 : v > 50 ? 1 : 0),
+    p(state.ssr,  v => v < 7 ? 2 : v < 10 ? 1.5 : v < 13 ? 1 : 0),
+    p(state.fund, v => v < -0.02 ? 2 : v < 0 ? 1.5 : v < 0.02 ? 1 : 0)
+  ], 3);
+  const scored = [l1, l2, l3].filter(l => l.score !== null);
+  // A single layer is not a composite: require at least 2 scored layers.
+  const composite = scored.length >= 2 ? scored.reduce((s, l) => s + l.score, 0) / scored.length : null;
+  return { l1, l2, l3, composite, layersScored: scored.length };
+}
+
+function getAction(s, allLayers) {
+  if (s >= 8) return allLayers ? ['Strong Buy — All 3 layers aligned bullish', 'Add 2× normal position size. All layers green.', '#047857']
+                               : ['Strong Buy (partial coverage)', 'Strong reading from the layers that could be scored.', '#047857'];
+  if (s >= 6.5) return ['Cautious Accumulate', 'DCA at current levels. Add on confirmed breakout.', '#b45309'];
+  if (s >= 5) return ['Hold / Small DCA', 'Hold core. Small DCA only. Watch MVRV for top signals.', '#b45309'];
+  if (s >= 3) return ['Reduce Exposure', 'Take partial profits. Multiple bearish signals building.', '#b91c1c'];
+  return ['Exit / Cash', 'MVRV overextended or liquidity collapsing. Move to USDT/cash.', '#b91c1c'];
+}
+
+function updateScoreUI() {
+  const { l1, l2, l3, composite, layersScored } = scorify();
+  const fmt = l => l.score === null ? `— (${l.known}/${l.total} inputs)` : l.score.toFixed(1) + (l.known < l.total ? ` (${l.known}/${l.total})` : '');
+  const partial = layersScored < 3 || [l1, l2, l3].some(l => l.known < l.total);
+  document.getElementById('compositeScore').textContent = composite === null ? '—' : composite.toFixed(1);
+  document.getElementById('scoreBar').style.width = (composite === null ? 0 : composite * 10) + '%';
+  document.getElementById('scoreBreakdown').textContent =
+    `L1: ${fmt(l1)} · L2: ${fmt(l2)} · L3: ${fmt(l3)}` + (partial ? ` · PARTIAL: ${layersScored}/3 layers scored` : '');
+  const aEl = document.getElementById('actionSignal'), dEl = document.getElementById('actionDesc');
+  if (composite === null) {
+    aEl.textContent = 'Insufficient data'; aEl.style.color = '#374151';
+    dEl.textContent = `Not enough validated inputs to score (${layersScored}/3 layers scored; at least 2 needed). See the source status in each layer.`;
+  } else {
+    const [action, desc, col] = getAction(composite, layersScored === 3);
+    aEl.textContent = action; aEl.style.color = col;
+    dEl.textContent = desc + (partial ? ' Partial coverage: treat with caution.' : '');
+  }
+  const lvdict = s => s === null ? ['na-v', 'Insufficient data'] : s >= 7 ? ['bull-v', 'Bullish'] : s >= 5 ? ['neut-v', 'Mixed'] : ['bear-v', 'Bearish'];
+  [['l1verdict', l1], ['l2verdict', l2], ['l3verdict', l3]].forEach(([id, l]) => {
+    const [cls, txt] = lvdict(l.score);
+    const el = document.getElementById(id);
+    el.className = 'lv ' + cls;
+    el.textContent = l.score === null ? `${txt} (${l.known}/${l.total})` : `${txt} (${l.score.toFixed(1)}/10${l.known < l.total ? ` · ${l.known}/${l.total} inputs` : ''})`;
+  });
+}
+
+const L1_KEYS = { m2:'m2Trend', nlm:'nlm', rrp:'rrp', tga:'tga', ry:'ry', walcl:'walcl' };
+function updateIndicator(key, val) {
+  if (!Number.isFinite(val)) return;
+  if (key in L1_KEYS) { l1Overrides[key] = { value: val, at: new Date().toISOString() }; syncL1State(); }
+  else { state[key] = val; manualKeys.add(key); }
+  rebuildBadges();
+  updateScoreUI();
+  renderL1Table();
+  const sc = document.getElementById('compositeScore');
+  sc.style.color = '#c2410c';
+  setTimeout(() => sc.style.color = '', 700);
+}
+
+const BADGE_CLS = { bull:'bull-b', bear:'bear-b', neut:'neut-b', na:'na-b' };
+const CLASS_TXT = { bull:'Bullish', bear:'Bearish', neut:'Neutral', na:'No data' };
+function rebuildBadges() {
+  const B = (id, cls, txt) => { const el = document.getElementById(id); if (el) { el.className = 'badge ' + cls; el.textContent = txt; } };
+  const T = (id, txt, cls) => { const el = document.getElementById(id); if (el) { el.textContent = txt; if (cls !== undefined) el.className = cls; } };
+  const NA = (badge, val) => { B(badge, 'na-b', 'No data'); T(val, '—'); };
+
+  // Layer 1 cards: same classes/values as the table's current row.
+  const cur = effectiveCurrentRow();
+  Object.entries({ m2:'m2Trend', nlm:'nlm', rrp:'rrp', tga:'tga', ry:'ry', walcl:'walcl' }).forEach(([key, metric]) => {
+    const cell = cur ? cur.cells[metric] : null;
+    const cls = cur ? cur.classes[metric] : 'na';
+    B(`${key}-badge`, BADGE_CLS[cls], CLASS_TXT[cls] + (cell && cell.manual ? ' · Manual' : ''));
+    const card = document.getElementById(`${key}-badge`)?.closest('.iblock');
+    if (card) card.className = 'iblock ' + ({ bull:'bull', bear:'bear', neut:'neut' }[cls] || 'nodata');
+    T(`${key}-val`, l1CardValue(key, cur), 'ib-val');
+    T(`${key}-date`, cell ? l1CardNote(metric, cell, cur) : 'No data');
+  });
+  // Alert driven by NLM
+  const nlmCls = cur ? cur.classes.nlm : 'na';
+  B('alert-nlm-badge', nlmCls === 'na' ? 'na-b' : nlmCls === 'bull' ? 'bull-b' : 'neut-b', nlmCls === 'na' ? 'No data' : nlmCls === 'bull' ? 'Triggered' : 'Not triggered');
+
+  // Layer 2
+  if (has(state.dxy)) { B('dxy-badge', state.dxy < 98 ? 'bull-b' : state.dxy < 102 ? 'neut-b' : 'bear-b', state.dxy < 98 ? 'Bullish' : state.dxy < 102 ? 'Neutral' : 'Bearish'); T('dxy-val', state.dxy.toFixed(2)); } else NA('dxy-badge', 'dxy-val');
+  if (has(state.ys)) { B('ys-badge', state.ys > 0.5 ? 'bull-b' : state.ys > 0 ? 'neut-b' : 'bear-b', state.ys > 0.5 ? 'Bullish' : state.ys > 0 ? 'Neutral' : 'Inverted/Bear'); T('ys-val', (state.ys > 0 ? '+' : '') + state.ys.toFixed(2) + '%'); } else NA('ys-badge', 'ys-val');
+  if (has(state.qqq)) { B('qqq-badge', state.qqq > 140 ? 'bull-b' : state.qqq > 90 ? 'neut-b' : 'bear-b', state.qqq > 140 ? 'Outperforming' : state.qqq > 90 ? 'Neutral' : 'Underperforming'); T('qqq-val', state.qqq.toFixed(2)); } else NA('qqq-badge', 'qqq-val');
+  // Layer 3
+  if (has(state.mvrv)) { B('mvrv-badge', state.mvrv < 0.5 ? 'bull-b' : state.mvrv < 3 ? 'neut-b' : 'bear-b', state.mvrv < 0.5 ? 'Accumulate' : state.mvrv < 3 ? 'Fair Value' : state.mvrv < 6 ? 'Take Profits' : 'Exit Zone'); T('mvrv-val', state.mvrv.toFixed(1) + ' (manual)'); }
+  else { B('mvrv-badge', 'na-b', 'Enter value'); T('mvrv-val', '—'); }
+  if (has(state.btcd)) { B('btcd-badge', state.btcd > 58 ? 'bull-b' : state.btcd > 50 ? 'neut-b' : 'bear-b', state.btcd > 58 ? 'BTC Rally' : state.btcd > 50 ? 'Mixed' : 'Altseason'); T('btcd-val', state.btcd.toFixed(1) + '%'); } else NA('btcd-badge', 'btcd-val');
+  if (has(state.ssr)) { B('ssr-badge', state.ssr < 8 ? 'bull-b' : state.ssr < 12 ? 'neut-b' : 'bear-b', state.ssr < 8 ? 'Accumulate' : state.ssr < 12 ? 'Watch Exits' : 'Distribution'); T('ssr-val', state.ssr.toFixed(1)); } else NA('ssr-badge', 'ssr-val');
+  if (has(state.fund)) { B('fund-badge', state.fund < -0.005 ? 'bull-b' : state.fund < 0.01 ? 'neut-b' : 'bear-b', state.fund < -0.005 ? 'Squeeze Setup' : state.fund < 0.01 ? 'Neutral' : 'Crowded Longs'); T('fund-val', (state.fund > 0 ? '+' : '') + (state.fund * 100).toFixed(3) + '%'); } else NA('fund-badge', 'fund-val');
+}
+
+/* ============================================================
+   LIVE DATA SOURCES
+   ============================================================ */
+const sourceState = { Binance:false, CoinGecko:false, FRED:false, Yahoo:false };
+const liveCache = {btcRows:[]};
+
+async function fetchPublic(url, timeout=10000, useProxy=false) {
+  const targets = useProxy ? [
+    url,
+    `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+  ] : [url];
+  let lastError;
+  for (const target of targets) {
+    try {
+      const r = await fetch(target, {signal: AbortSignal.timeout(timeout), cache:'no-store'});
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('Data source unavailable');
+}
+
+async function fetchJSON(url, timeout=10000, useProxy=false) {
+  return (await fetchPublic(url, timeout, useProxy)).json();
+}
+
+function setInput(key, value, digits=2) {
+  const el = document.getElementById(`in-${key}`);
+  if (el) el.value = Number(value).toFixed(digits);
+}
+
+function formatUSD(value) {
+  return '$' + Math.round(value).toLocaleString('en-US');
+}
+
+function applyBTCChart(rows) {
+  const ch = chartRefs.btcMaster;
+  if (!ch || !rows.length) return;
+  const values = rows.map(r => r.close / 1000);
+  ch.data.labels = rows.map(r => r.date);
+  ch.data.datasets[0].data = values;
+  const recent = rows.slice(-30);
+  const support = Math.min(...recent.map(r => r.low)) / 1000;
+  const resistance = Math.max(...recent.map(r => r.high)) / 1000;
+  ch.data.datasets[1].data = new Array(rows.length).fill(support);
+  ch.data.datasets[1].label = `30D low $${support.toFixed(1)}K`;
+  ch.data.datasets[2].data = new Array(rows.length).fill(resistance);
+  ch.data.datasets[2].label = `30D high $${resistance.toFixed(1)}K`;
+  document.getElementById('btcSupportLegend').lastChild.textContent = `30D low $${support.toFixed(1)}K`;
+  document.getElementById('btcResistanceLegend').lastChild.textContent = `30D high $${resistance.toFixed(1)}K`;
+  document.getElementById('btcMaster').setAttribute('aria-label', `BTC daily price chart, ${rows[0].date} to ${rows[rows.length-1].date}`);
+  const min = Math.min(...values, support), max = Math.max(...values, resistance);
+  ch.options.scales.y.min = Math.floor(min * .94);
+  ch.options.scales.y.max = Math.ceil(max * 1.06);
+  ch.update('none');
+  document.getElementById('btc-chart-subtitle').textContent =
+    `${rows[0].date} → ${rows[rows.length-1].date} · 30D RANGE $${support.toFixed(1)}K–$${resistance.toFixed(1)}K · DAILY CLOSES`;
+}
+
+async function loadBinanceData() {
+  const [ticker, klines, premium] = await Promise.all([
+    fetchJSON('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT'),
+    fetchJSON('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=180'),
+    fetchJSON('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT')
+  ]);
+  state.btc = Number(ticker.lastPrice);
+  state.btcChange = Number(ticker.priceChangePercent);
+  state.fund = Number(premium.lastFundingRate);
+  setInput('fund', state.fund * 100, 4);
+  document.getElementById('h-btc').textContent = formatUSD(state.btc);
+  document.getElementById('fund-delta').textContent = 'Latest perpetual 8h rate';
+  const change = document.getElementById('h-btc-change');
+  change.textContent = `${state.btcChange >= 0 ? '▲ +' : '▼ '}${state.btcChange.toFixed(2)}% over 24h · High ${formatUSD(Number(ticker.highPrice))} · Low ${formatUSD(Number(ticker.lowPrice))}`;
+  change.className = `hc-sub ${state.btcChange >= 0 ? 'up' : 'dn'}`;
+  liveCache.btcRows = klines.map(k => ({
+    date: new Date(k[0]).toISOString().slice(0,10),
+    high: Number(k[2]), low: Number(k[3]), close: Number(k[4])
+  }));
+  applyBTCChart(liveCache.btcRows);
+  sourceState.Binance = true;
+}
+
+async function loadCoinGeckoData() {
+  const [global, stablecoins] = await Promise.all([
+    fetchJSON('https://api.coingecko.com/api/v3/global', 12000),
+    fetchJSON('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&category=stablecoins&order=market_cap_desc&per_page=250&page=1', 12000)
+  ]);
+  state.btcd = Number(global.data.market_cap_percentage.btc);
+  const btcMarketCap = global.data.total_market_cap.usd * state.btcd / 100;
+  const stablecoinMarketCap = stablecoins.reduce((sum, coin) => sum + (Number(coin.market_cap) || 0), 0);
+  if (stablecoinMarketCap > 0) state.ssr = btcMarketCap / stablecoinMarketCap;
+  setInput('btcd', state.btcd, 2);
+  setInput('ssr', state.ssr, 2);
+  document.getElementById('btcd-delta').textContent = 'Live market share';
+  document.getElementById('ssr-delta').textContent = 'BTC market cap / stablecoin market cap';
+  sourceState.CoinGecko = true;
+}
+
+async function loadYahooData() {
+  const getLatest = async symbol => {
+    const data = await fetchJSON(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1mo&interval=1d&_=${Date.now()}`, 12000, true);
+    const result = data.chart.result && data.chart.result[0];
+    const closes = result?.indicators?.quote?.[0]?.close?.filter(Number.isFinite) || [];
+    if (!closes.length) throw new Error(`Yahoo ${symbol}: no values`);
+    return {latest: closes[closes.length-1], closes, timestamps: result.timestamp || []};
+  };
+  const [dxy, qqq, tenY] = await Promise.all([getLatest('DX-Y.NYB'), getLatest('QQQ'), getLatest('^TNX')]);
+  state.dxy = dxy.latest;
+  state.dxyChange = dxy.closes.length > 1 ? (dxy.latest / dxy.closes[dxy.closes.length-2] - 1) * 100 : 0;
+  state.tenY = tenY.latest;
+  state.qqqPrice = qqq.latest;
+  state.qqq = has(state.btc) ? state.btc / state.qqqPrice : null;
+  setInput('dxy', state.dxy);
+  if (has(state.qqq)) setInput('qqq', state.qqq);
+  document.getElementById('dxy-delta').textContent = `${state.dxyChange >= 0 ? '▲ +' : '▼ '}${state.dxyChange.toFixed(2)}% last session`;
+  document.getElementById('qqq-delta').textContent = `QQQ $${state.qqqPrice.toFixed(2)} latest close`;
+  updateSparkline('dxy', dxy.closes.slice(-26));
+  const btcCloses = liveCache.btcRows.slice(-qqq.closes.length).map(row => row.close);
+  const count = Math.min(btcCloses.length, qqq.closes.length);
+  if (count) updateSparkline('qqq', qqq.closes.slice(-count).map((price, i) => btcCloses.slice(-count)[i] / price));
+  sourceState.Yahoo = true;
+}
+
+/* ============================================================
+   FRED DATA LAYER (browser)
+   Order: same-origin relay /api/fred (serve.py, adds server-side retries)
+   → direct FRED (only works if FRED ever sends CORS headers).
+   Valid responses are cached in localStorage; failed series keep their
+   last valid cache and are labelled Cached/Stale, never live.
+   ============================================================ */
+const FRED_IDS = ['M2SL', 'WALCL', 'WDTGAL', 'RRPONTSYD', 'DFII10', 'DGS10', 'DGS2'];
+const L1_SERIES_IDS = ['M2SL', 'WALCL', 'WDTGAL', 'RRPONTSYD', 'DFII10'];
+const FRED_CACHE_KEY = 'btcDash.fred.v2';
+const FRED_TTL_MS = { daily: 2 * 3600e3, weekly: 6 * 3600e3, monthly: 12 * 3600e3 };
+const FRED_RETRY_FAILED_MS = 10 * 60e3;
+const fred = { entries: {}, attempted: false };
+
+function loadFredCache() {
+  try { localStorage.removeItem('btcDash.l1History.v1'); } catch (e) {}   // superseded derived cache (unaligned method)
+  let raw = null;
+  try { raw = JSON.parse(localStorage.getItem(FRED_CACHE_KEY) || 'null'); } catch (e) {}
+  if (!raw || typeof raw !== 'object') return;
+  FRED_IDS.forEach(id => {
+    const c = raw[id];
+    if (!c || typeof c.text !== 'string') return;
+    try { fred.entries[id] = { ...c, parsed: L1Core.parseFredCsv(c.text, id), fromCache: true, error: null }; }
+    catch (e) { /* cache entry failed validation: discard */ }
+  });
+}
+function saveFredCache() {
+  const out = {};
+  FRED_IDS.forEach(id => {
+    const e = fred.entries[id];
+    if (e && e.text) out[id] = { text: e.text, retrievedAt: e.retrievedAt, sourceUpdated: e.sourceUpdated, provider: e.provider, cosd: e.cosd };
+  });
+  try { localStorage.setItem(FRED_CACHE_KEY, JSON.stringify(out)); } catch (e) {}
+}
+
+function describeFetchError(err) {
+  if (err && (err.name === 'TimeoutError' || err.name === 'AbortError')) return { kind:'timeout', message:'request timed out' };
+  if (err instanceof TypeError) return { kind:'network', message:'network error or blocked by CORS' };
+  return { kind:'validation', message: (err && err.message) || String(err) };
+}
+async function fetchFredSeries(id, cosd) {
+  const attempts = [];
+  let relayRunning = false;
+  if (location.protocol === 'http:' || location.protocol === 'https:') {
+    try {
+      const r = await fetch(`/api/fred/${id}?cosd=${cosd}`, { cache:'no-store', signal: AbortSignal.timeout(70000) });
+      const type = r.headers.get('content-type') || '';
+      if (r.ok && type.includes('text/csv')) {
+        relayRunning = true;
+        const text = await r.text();
+        return { text, parsed: L1Core.parseFredCsv(text, id), provider: r.headers.get('X-Provider') || 'FRED via local relay',
+                 sourceUpdated: r.headers.get('X-Source-Last-Modified'), retrievedAt: new Date().toISOString(), cosd };
+      }
+      if (type.includes('application/json')) {
+        relayRunning = true;
+        const j = await r.json();
+        attempts.push({ via:'local relay', kind: j.error || 'http', status: j.status, message: j.message || `HTTP ${r.status}` });
+      } else {
+        attempts.push({ via:'local relay', kind:'relay-missing', status: r.status, message:'no data relay on this server; start the dashboard with "python serve.py"' });
+      }
+    } catch (e) { attempts.push({ via:'local relay', ...describeFetchError(e) }); }
+  } else {
+    attempts.push({ via:'local relay', kind:'relay-missing', message:'page opened from file://; run "python serve.py" and open http://127.0.0.1:8765/btc_dashboard_v2.html' });
+  }
+  if (!relayRunning) {   // the relay already reached FRED if it is running; a direct call cannot do better
+    try {
+      const r = await fetch(`https://fred.stlouisfed.org/graph/fredgraph.csv?id=${id}&cosd=${cosd}`, { cache:'no-store', signal: AbortSignal.timeout(15000) });
+      if (r.ok) {
+        const text = await r.text();
+        return { text, parsed: L1Core.parseFredCsv(text, id), provider:'FRED (Federal Reserve Bank of St. Louis), direct', sourceUpdated:null, retrievedAt:new Date().toISOString(), cosd };
+      }
+      attempts.push({ via:'FRED direct', kind: r.status === 401 || r.status === 403 ? 'auth' : r.status === 429 ? 'rate-limit' : 'http', status: r.status, message:`HTTP ${r.status}` });
+    } catch (e) {
+      const d = describeFetchError(e);
+      attempts.push({ via:'FRED direct', ...d, message: d.kind === 'network' ? 'blocked by CORS (FRED sends no CORS headers)' : d.message });
+    }
+  }
+  const err = new Error(attempts.map(a => `${a.via}: ${a.kind}${a.status ? ' ' + a.status : ''} — ${a.message}`).join('; '));
+  err.attempts = attempts;
+  throw err;
+}
+
+function fredDue(id, now) {
+  const e = fred.entries[id];
+  if (!e || !e.parsed) return !e || !e.attemptedAt || now - e.attemptedAt > FRED_RETRY_FAILED_MS;
+  if (e.error) return !e.attemptedAt || now - e.attemptedAt > FRED_RETRY_FAILED_MS;
+  const age = now - Date.parse(e.retrievedAt || 0);
+  if (!(age < FRED_TTL_MS[L1Core.SERIES[id].freq])) return true;
+  return L1Core.seriesFreshness(id, e, now).state === 'stale' && age > 30 * 60e3;   // a newer release is due
+}
+
+async function refreshFred(force) {
+  const now = Date.now(), cosd = L1Core.historyStart(now);
+  const ids = FRED_IDS.filter(id => force || fredDue(id, now));
+  const results = await Promise.allSettled(ids.map(id => fetchFredSeries(id, cosd)));
+  const failures = [];
+  ids.forEach((id, i) => {
+    const prev = fred.entries[id];
+    if (results[i].status === 'fulfilled') fred.entries[id] = { ...results[i].value, fromCache:false, error:null, attemptedAt: now };
+    else {
+      const msg = results[i].reason.message;
+      failures.push(`${id}: ${msg}`);
+      fred.entries[id] = prev && prev.parsed ? { ...prev, fromCache:true, error: msg, attemptedAt: now } : { error: msg, attemptedAt: now };
+    }
+  });
+  if (ids.length) saveFredCache();
+  fred.attempted = true;
+  return { attempted: ids, failures };
+}
+
+async function loadFREDData(force = true) {
+  const { failures } = await refreshFred(force);
+  rebuildL1();
+  const allValid = FRED_IDS.every(id => fred.entries[id] && fred.entries[id].parsed && !fred.entries[id].error);
+  sourceState.FRED = allValid ? (FRED_IDS.some(id => fred.entries[id].fromCache) ? 'cached' : 'live') : false;
+  if (failures.length) throw new Error(failures.join(' | '));
+}
+
+function refreshDerivedData() {
+  state.qqq = has(state.btc) && has(state.qqqPrice) ? state.btc / state.qqqPrice : (manualKeys.has('qqq') ? state.qqq : null);
+  if (has(state.qqq)) setInput('qqq', state.qqq);
+  rebuildBadges();
+  updateScoreUI();
+  renderL1Table();
+  syncTradingViewCards();
+}
+
+/* ============================================================
+   LAYER 1 — TABLE, CARDS, SOURCE PANEL
+   Rows come from L1Core.buildTable (12 completed months + current).
+   Manual "Set" values override only the current row and are marked.
+   ============================================================ */
+let l1Rows = [];
+const l1Overrides = {};                     // key → { value, at }
+const l1View = { sortKey:'date', sortDir:'asc', selected:null };
+const METRIC_SERIES = { m2Level:['M2SL'], m2Trend:['M2SL'], nlm:['WALCL', 'WDTGAL', 'RRPONTSYD'], rrp:['RRPONTSYD'], tga:['WDTGAL'], ry:['DFII10'], walcl:['WALCL'] };
+const STATUS_TXT = { latest:'Latest available', cached:'Cached', stale:'Stale', unavailable:'Unavailable' };
+const fin = Number.isFinite;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const signedFmt = (v, d) => { const r = Number(v.toFixed(d)); return (r > 0 ? '+' : r < 0 ? '−' : '') + Math.abs(r).toFixed(d); };
+const DIR_TXT = { 1:'▲ Rising', 0:'■ Flat', '-1':'▼ Falling' };
+const L1_FMT = {
+  m2Level: c => '$' + c.value.toFixed(2),
+  m2Trend: c => c.manual ? DIR_TXT[c.dir] : `${DIR_TXT[c.dir].slice(0, 1)} ${signedFmt(c.value * 100, 2)}%`,
+  nlm:     c => signedFmt(c.value, 2),
+  rrp:     c => '$' + (Math.abs(c.value) < 10 ? c.value.toFixed(2) : Math.round(c.value).toLocaleString('en-US')),
+  tga:     c => '$' + Math.round(c.value).toLocaleString('en-US'),
+  ry:      c => c.value.toFixed(2) + '%',
+  walcl:   c => '$' + c.value.toFixed(2) + (fin(c.qoq) ? ` · ${signedFmt(c.qoq * 100, 1)}%` : '')
+};
+function l1CellHasValue(metric, c) {
+  if (!c) return false;
+  return metric === 'm2Trend' ? c.dir === 1 || c.dir === 0 || c.dir === -1 : fin(c.value);
+}
+const shortDate = d => new Date(d + 'T00:00:00Z').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric', timeZone:'UTC' });
+function obsLabel(metric, c) {
+  if (c.manual) return 'manual';
+  if (metric === 'm2Level' || metric === 'm2Trend') return L1Core.monthLabel(c.date.slice(0, 7));
+  return (metric === 'nlm' ? 'wk ' : '') + shortDate(c.date);
+}
+function fmtTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return isNaN(d) ? esc(iso) : d.toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:false }) + ' IST';
+}
+function freshnessOf(id) { const e = fred.entries[id]; return L1Core.seriesFreshness(id, e && e.parsed ? e : null, Date.now()); }
+function metricFreshness(metric) {
+  const order = ['unavailable', 'stale', 'cached', 'latest'];
+  return METRIC_SERIES[metric].map(freshnessOf).map(f => f.state).sort((a, b) => order.indexOf(a) - order.indexOf(b))[0];
+}
+
+function rebuildL1() {
+  const parsed = {};
+  FRED_IDS.forEach(id => { if (fred.entries[id] && fred.entries[id].parsed) parsed[id] = fred.entries[id].parsed; });
+  l1Rows = L1Core.buildTable(L1Core.buildDataset(parsed), Date.now());
+  // 10Y−2Y spread on the latest date both yields exist
+  if (!manualKeys.has('ys')) {
+    state.ys = null; state.ysDate = null;
+    if (parsed.DGS10 && parsed.DGS2) {
+      const two = new Map(parsed.DGS2.rows);
+      for (let i = parsed.DGS10.rows.length - 1; i >= 0; i--) {
+        const [d, v] = parsed.DGS10.rows[i];
+        if (two.has(d)) { state.ys = v - two.get(d); state.ysDate = d; break; }
+      }
+    }
+    const el = document.getElementById('ys-delta');
+    if (el) el.textContent = state.ysDate ? `10Y − 2Y on ${state.ysDate} (FRED DGS10, DGS2)` : 'FRED DGS10/DGS2 unavailable';
+    if (has(state.ys)) setInput('ys', state.ys, 2);
+  }
+  syncL1State();
+  const cur = l1Rows[l1Rows.length - 1];
+  if (cur) {
+    const c = cur.cells, put = (key, cell, digits, f = v => v) => { if (!l1Overrides[key] && cell && fin(cell.value)) setInput(key, f(cell.value), digits); };
+    if (!l1Overrides.m2 && l1CellHasValue('m2Trend', c.m2Trend)) setInput('m2', c.m2Trend.dir, 0);
+    put('nlm', c.nlm, 3); put('rrp', c.rrp, 3); put('tga', c.tga, 0); put('ry', c.ry, 2); put('walcl', c.walcl, 3);
+  }
+}
+
+function effectiveCurrentRow() {
+  const src = l1Rows[l1Rows.length - 1];
+  if (!src) return null;
+  if (!Object.keys(l1Overrides).length) return src;
+  const row = { ...src, cells: { ...src.cells } };
+  Object.entries(l1Overrides).forEach(([key, o]) => {
+    const metric = L1_KEYS[key], prev = src.cells[metric] || {};
+    if (key === 'm2') row.cells.m2Trend = { value:null, dir: Math.sign(o.value), manual:o, source: prev };
+    else if (key === 'walcl') row.cells.walcl = { value: o.value, qoq: prev.base && fin(prev.base.raw) ? o.value / (prev.base.raw / 1e6) - 1 : null, base: prev.base, manual:o, source: prev };
+    else row.cells[metric] = { value: o.value, manual:o, source: prev };
+  });
+  return L1Core.finalizeRow(row);
+}
+function syncL1State() {
+  const cur = effectiveCurrentRow(), c = cur ? cur.cells : {};
+  state.m2 = l1CellHasValue('m2Trend', c.m2Trend) ? c.m2Trend.dir : null;
+  state.m2Level = c.m2Level && fin(c.m2Level.value) ? c.m2Level.value : null;
+  ['nlm', 'rrp', 'tga', 'ry', 'walcl'].forEach(k => { state[k] = c[k] && fin(c[k].value) ? c[k].value : null; });
+}
+function clearL1Overrides() {
+  Object.keys(l1Overrides).forEach(k => delete l1Overrides[k]);
+  rebuildL1(); rebuildBadges(); updateScoreUI(); renderL1Table(); syncTradingViewCards();
+}
+
+// Card helpers
+function l1CardValue(key, cur) {
+  if (!cur) return '—';
+  const m2 = cur.cells.m2Trend;
+  if (key === 'm2') return m2 && m2.manual ? DIR_TXT[m2.dir] + ' (manual)' : l1CellHasValue('m2Level', cur.cells.m2Level) ? `$${cur.cells.m2Level.value.toFixed(2)}T` : '—';
+  const metric = L1_KEYS[key], c = cur.cells[metric];
+  if (!l1CellHasValue(metric, c)) return '—';
+  const unit = { nlm:'T', rrp:'B', tga:'B' }[metric] || '';
+  return metric === 'walcl' ? '$' + c.value.toFixed(2) + 'T' : L1_FMT[metric](c) + unit;
+}
+function l1CardNote(metric, c, cur) {
+  if (c.manual) return `Manual value · set ${fmtTime(c.manual.at)}`;
+  if (metric === 'm2Trend') {
+    const lvl = cur.cells.m2Level;
+    if (!l1CellHasValue('m2Level', lvl)) return lvl && lvl.state === 'pending' ? 'Not yet published' : 'Unavailable';
+    const f = metricFreshness('m2Level'), tag = f === 'latest' ? '' : ` · ${STATUS_TXT[f]}`;
+    return (l1CellHasValue('m2Trend', c) ? `${L1Core.monthLabel(lvl.date.slice(0, 7))} · ${signedFmt(c.value * 100, 2)}% vs ${L1Core.monthLabel(c.base.date.slice(0, 7))}` : `${L1Core.monthLabel(lvl.date.slice(0, 7))} · trend unavailable`) + tag;
+  }
+  if (!l1CellHasValue(metric, c)) return c.state === 'pending' ? 'Not yet published' : 'Unavailable';
+  const f = metricFreshness(metric), tag = f === 'latest' ? '' : ` · ${STATUS_TXT[f]}`;
+  if (metric === 'nlm') return `8-week change to Wed ${shortDate(c.date)}${c.skipped && c.skipped.length ? ` (${c.skipped.map(s => shortDate(s.date)).join(', ')} not computable)` : ''}${tag}`;
+  if (metric === 'walcl') return `Obs ${shortDate(c.date)}${fin(c.qoq) ? ` · ${signedFmt(c.qoq * 100, 2)}% vs 13 weeks earlier` : ''}${tag}`;
+  return `Obs ${shortDate(c.date)}${tag}`;
+}
+
+// Table
+function cellTooltip(row, metric, c) {
+  if (c.manual) return `Manual value set ${fmtTime(c.manual.at)}`;
+  if (!l1CellHasValue(metric, c)) return c.reason || 'Unavailable';
+  return `${metric === 'nlm' ? 'Wednesday' : 'Observation'} ${c.date}${row.current ? '' : ' (last valid observation in month)'} · click for source`;
+}
+function cellHtml(row, metric) {
+  const c = row.cells[metric] || {}, id = `${row.key}:${metric}`, sel = l1View.selected === id;
+  const attrs = `type="button" data-cell="${id}" aria-pressed="${sel}" title="${esc(cellTooltip(row, metric, c))}"`;
+  if (!l1CellHasValue(metric, c)) {
+    const pend = c.state === 'pending';
+    return `<button ${attrs} class="vb ${pend ? 'pend' : 'na'}">${pend ? 'Not yet published' : 'Unavailable'}</button>`;
+  }
+  const cls = metric === 'm2Level' ? 'plain' : row.classes[metric];
+  const fresh = c.manual ? 'latest' : metricFreshness(metric);
+  const flag = fresh === 'stale' ? ' stale' : '';
+  const date = row.current ? `<span class="od">${esc(obsLabel(metric, c))}${fresh !== 'latest' ? ' · ' + STATUS_TXT[fresh].toLowerCase() : ''}</span>` : '';
+  return `<button ${attrs} class="vb ${cls}${flag}">${esc(L1_FMT[metric](c))}${c.manual ? ' ✎' : ''}</button>${date}`;
+}
+const SIG_TXT = { bull:'Bullish', bear:'Bearish', neut:'Neutral', insufficient:'Insufficient data' };
+function rowsForDisplay() { const cur = effectiveCurrentRow(); return l1Rows.length ? [...l1Rows.slice(0, -1), cur] : []; }
+
+function renderL1Table() {
+  const body = document.getElementById('l1h-body');
+  if (!body) return;
+  const rows = rowsForDisplay();
+  const sortVal = {
+    date: r => r.key, m2Level: r => r.cells.m2Level?.value, m2Trend: r => r.cells.m2Trend?.manual ? r.cells.m2Trend.dir / 100 : r.cells.m2Trend?.value,
+    nlm: r => r.cells.nlm?.value, rrp: r => r.cells.rrp?.value, tga: r => r.cells.tga?.value, ry: r => r.cells.ry?.value,
+    walcl: r => r.cells.walcl?.value, signal: r => r.sig.known ? r.sig.bull - r.sig.bear : null
+  }[l1View.sortKey];
+  const dir = l1View.sortDir === 'asc' ? 1 : -1;
+  rows.sort((a, b) => {
+    const va = sortVal(a), vb = sortVal(b);
+    const na = va === null || va === undefined || (typeof va === 'number' && !fin(va));
+    const nb = vb === null || vb === undefined || (typeof vb === 'number' && !fin(vb));
+    if (na || nb) return na === nb ? 0 : na ? 1 : -1;     // missing values always last
+    return (va < vb ? -1 : va > vb ? 1 : 0) * dir;
+  });
+  body.innerHTML = rows.map(r => {
+    const s = r.sig, sigCls = s.signal === 'insufficient' ? 'na' : s.signal, id = `${r.key}:signal`;
+    return `<tr class="${r.current ? 'cur' : ''}">
+      <th scope="row">${esc(r.label)}${r.current ? '<span class="od">latest observation per metric</span>' : ''}</th>
+      ${['m2Level', 'm2Trend', 'nlm', 'rrp', 'tga', 'ry', 'walcl'].map(m => `<td>${cellHtml(r, m)}</td>`).join('')}
+      <td><button type="button" class="vb sig ${sigCls}" data-cell="${id}" aria-pressed="${l1View.selected === id}"
+        title="${s.bull} bullish · ${s.neut} neutral · ${s.bear} bearish · ${s.na} missing">${SIG_TXT[s.signal]}<span class="cnt">${s.bull}▲ ${s.bear}▼${s.na ? ` ${s.na}?` : ''}</span></button></td>
+    </tr>`;
+  }).join('');
+
+  document.querySelectorAll('#l1History .l1h-sort').forEach(btn => {
+    const active = btn.dataset.sort === l1View.sortKey;
+    btn.setAttribute('aria-pressed', active);
+    btn.closest('th').setAttribute('aria-sort', active ? (l1View.sortDir === 'asc' ? 'ascending' : 'descending') : 'none');
+    btn.querySelector('.arr').textContent = active ? (l1View.sortDir === 'asc' ? '▲' : '▼') : '↕';
+  });
+  renderL1Status();
+  renderSourcePanel();
+  document.getElementById('l1-clear').hidden = !Object.keys(l1Overrides).length;
+}
+
+function renderL1Status() {
+  const chips = document.getElementById('l1h-chips'), status = document.getElementById('l1h-status');
+  const fr = Object.fromEntries(L1_SERIES_IDS.map(id => [id, freshnessOf(id)]));
+  chips.innerHTML = L1_SERIES_IDS.map(id => {
+    const f = fr[id], e = fred.entries[id] || {}, s = L1Core.SERIES[id];
+    const have = f.have ? (s.freq === 'monthly' ? L1Core.monthLabel(f.have) : shortDate(f.have)) : '—';
+    const tip = `${s.name} · ${STATUS_TXT[f.state]} · latest observation ${have} (expected at least ${f.expected})` +
+      (e.retrievedAt ? ` · retrieved ${fmtTime(e.retrievedAt)}` : '') + (e.error ? ` · last refresh failed: ${e.error}` : '');
+    return `<a class="chip ${f.state}" href="${s.url}" target="_blank" rel="noopener" title="${esc(tip)}">${id} · ${STATUS_TXT[f.state]} · ${have}</a>`;
+  }).join('');
+  const counts = {}; Object.values(fr).forEach(f => { counts[f.state] = (counts[f.state] || 0) + 1; });
+  const errors = L1_SERIES_IDS.map(id => fred.entries[id]).filter(e => e && e.error);
+  let text, bad = !!(counts.unavailable || counts.stale || errors.length);
+  if (!fred.attempted && !Object.keys(fred.entries).length) { text = 'LOADING FRED DATA…'; bad = false; }
+  else if (counts.latest === L1_SERIES_IDS.length) text = `FRED · ${L1_SERIES_IDS.length}/${L1_SERIES_IDS.length} SERIES LATEST AVAILABLE · RETRIEVED ${fmtTime(Math.max(...L1_SERIES_IDS.map(id => Date.parse(fred.entries[id].retrievedAt))))}`.toUpperCase();
+  else {
+    text = 'FRED · ' + ['latest', 'cached', 'stale', 'unavailable'].filter(k => counts[k]).map(k => `${counts[k]} ${STATUS_TXT[k]}`).join(' · ').toUpperCase();
+    if (errors.length) {
+      const relayMissing = errors.some(e => /relay-missing|file:\/\//.test(e.error));
+      text += relayMissing ? ' · DATA RELAY NOT RUNNING: START WITH "python serve.py"' : ' · LAST REFRESH FAILED (HOVER A CHIP FOR DETAILS)';
+    }
+  }
+  status.textContent = text;
+  status.classList.toggle('err', bad);
+}
+
+function seriesBlock(id, date, raw) {
+  const s = L1Core.SERIES[id], e = fred.entries[id] || {}, f = freshnessOf(id);
+  return `<div class="src-series"><a href="${s.url}" target="_blank" rel="noopener">FRED ${id}</a> — ${esc(s.name)}<br>
+    Publisher: ${esc(s.publisher)} (${esc(s.release)}) · Retrieved via: ${esc(e.provider || '—')}<br>
+    Observation <strong>${date}</strong>: ${fin(raw) ? raw.toLocaleString('en-US', { maximumFractionDigits: 6 }) : '—'} (${esc(s.native)}) → ${esc(s.display)}: ${esc(s.conversion)}<br>
+    Source last updated: ${e.sourceUpdated ? fmtTime(e.sourceUpdated) : 'not provided by provider'} · Last successful retrieval: ${fmtTime(e.retrievedAt)} · Status: <strong>${STATUS_TXT[f.state]}</strong> (expected latest ≥ ${f.expected})${e.error ? `<br><span class="src-err">Last refresh failed: ${esc(e.error)}</span>` : ''}</div>`;
+}
+function netBlock(n, label) {
+  if (!n) return '';
+  if (n.value === null) return `<div class="src-series">${label} ${n.date}: unavailable — ${esc((n.missing || []).map(m => m.reason).join('; '))}</div>`;
+  const c = n.components;
+  return `<div class="src-series">${label} <strong>${n.date}</strong>: WALCL ${c.WALCL.toLocaleString()}M ÷ 1e6 − WDTGAL ${c.WDTGAL.toLocaleString()}M ÷ 1e6 − RRPONTSYD ${c.RRPONTSYD}B ÷ 1,000 = <strong>$${n.value.toFixed(6)}T</strong></div>`;
+}
+function renderSourcePanel() {
+  const panel = document.getElementById('l1h-src');
+  if (!l1View.selected) { panel.hidden = true; panel.innerHTML = ''; return; }
+  const [key, metric] = l1View.selected.split(':');
+  const row = rowsForDisplay().find(r => r.key === key);
+  if (!row) { panel.hidden = true; return; }
+  const c = row.cells[metric] || {}, R = L1Core.RULES[metric];
+  const title = { m2Level:'US M2 level', signal:'L1 signal' }[metric] || R.label;
+  let body = '';
+  if (metric === 'signal') {
+    const s = row.sig;
+    body = `<p>${s.bull} bullish · ${s.neut} neutral · ${s.bear} bearish · ${s.na} missing (of ${s.total}). Rule: Bullish if ≥4 bullish; Bearish if ≥3 bearish; Neutral otherwise. If missing inputs could change the outcome, the signal is <em>Insufficient data</em>.</p>
+      <p>Row L1 score: ${row.score.score === null ? `not computed (needs ≥${L1Core.L1_MIN_INPUTS} inputs, has ${row.score.known})` : row.score.score.toFixed(2) + '/10 (bull 2, neutral 1, bear 0 points, averaged over available inputs)'}</p>`;
+  } else {
+    if (c.manual) body += `<p><strong>Manual value</strong> entered ${fmtTime(c.manual.at)}. It overrides the source value for the current row only. Source value: ${c.source && l1CellHasValue(metric, c.source) ? esc(L1_FMT[metric](c.source)) + ` (${c.source.date})` : 'unavailable'}.</p>`;
+    else if (!l1CellHasValue(metric, c)) body += `<p><strong>${c.state === 'pending' ? 'Not yet published' : 'Unavailable'}:</strong> ${esc(c.reason || 'no observation')}</p>`;
+    if (!c.manual && l1CellHasValue(metric, c)) {
+      if (metric === 'm2Level') body += seriesBlock('M2SL', c.date, c.raw);
+      if (metric === 'm2Trend') body += `<p>Formula: M2SL[${c.date.slice(0, 7)}] ÷ M2SL[${c.base.date.slice(0, 7)}] − 1 = ${c.raw.toLocaleString()} ÷ ${c.base.raw.toLocaleString()} − 1 = <strong>${signedFmt(c.value * 100, 3)}%</strong> (flat band ±0.1%)</p>` + seriesBlock('M2SL', c.date, c.raw);
+      if (metric === 'rrp') body += seriesBlock('RRPONTSYD', c.date, c.raw);
+      if (metric === 'tga') body += seriesBlock('WDTGAL', c.date, c.raw) + '<p class="src-note">TGA uses WDTGAL (Wednesday level) so it aligns with WALCL. WTREGEN (week average) is not used.</p>';
+      if (metric === 'ry') body += seriesBlock('DFII10', c.date, c.raw);
+      if (metric === 'walcl') body += seriesBlock('WALCL', c.date, c.raw) + `<p>13-week change: WALCL[${c.date}] ÷ WALCL[${c.base.date}] − 1 = ${fin(c.qoq) ? `<strong>${signedFmt(c.qoq * 100, 3)}%</strong>` : `unavailable (${esc(c.qoqReason || 'no base observation')})`}</p>`;
+      if (metric === 'nlm') {
+        body += `<p>NLM = net liquidity(Wed) − net liquidity(Wed − 8 weeks). Net liquidity ($T) = WALCL/1e6 − WDTGAL/1e6 − RRPONTSYD/1,000, all three on the <em>same</em> Wednesday. Analytical proxy only. It is not a proven lead indicator for BTC.</p>`
+          + netBlock(c.end, 'End') + netBlock(c.start, 'Start') + `<p>NLM = <strong>${signedFmt(c.value, 6)} $T</strong></p>`
+          + (c.skipped && c.skipped.length ? `<p class="src-note">Later Wednesdays not computable: ${esc(c.skipped.map(s => `${s.date} (${s.reason})`).join('; '))}</p>` : '')
+          + ['WALCL', 'WDTGAL', 'RRPONTSYD'].map(id => seriesBlock(id, c.date, c.end.components[id])).join('');
+      }
+    }
+    if (R) body += `<p class="src-note">Badge: Bullish ${esc(R.bull)} · Bearish ${esc(R.bear)} · otherwise Neutral.</p>`;
+  }
+  body += `<p class="src-note">${row.current ? 'Current row: each metric shows its latest published observation; dates differ by metric.' : 'Historical row: last valid observation within the month (monthly M2: the observation for that month).'} Values are FRED's latest revised data, not what was known at the time; use ALFRED vintages for backtests.</p>`;
+  panel.innerHTML = `<div class="src-hd"><strong>${esc(title)} · ${esc(row.label)}</strong><button type="button" class="src-close" data-close="1" aria-label="Close source panel">✕</button></div>${body}`;
+  panel.hidden = false;
+}
+
+function initL1Table() {
+  loadFredCache();
+  document.querySelectorAll('#l1History .l1h-sort').forEach(btn => btn.addEventListener('click', () => {
+    const key = btn.dataset.sort;
+    if (l1View.sortKey === key) l1View.sortDir = l1View.sortDir === 'asc' ? 'desc' : 'asc';
+    else { l1View.sortKey = key; l1View.sortDir = key === 'date' ? 'asc' : 'desc'; }
+    renderL1Table();
+  }));
+  document.getElementById('l1History').addEventListener('click', ev => {
+    const btn = ev.target.closest('[data-cell],[data-close]');
+    if (!btn) return;
+    l1View.selected = btn.dataset.close || l1View.selected === btn.dataset.cell ? null : btn.dataset.cell;
+    renderL1Table();
+    if (l1View.selected) document.getElementById('l1h-src').scrollIntoView({ block:'nearest' });
+  });
+  document.getElementById('l1-clear').addEventListener('click', clearL1Overrides);
+  rebuildL1();
+  renderL1Table();
+}
+
+/* ============================================================
+   CHARTS — full timeline + price line
+   ============================================================ */
+const chartRefs = {};
+
+// Month labels helper
+function mLabels(n) {
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now=new Date(); const out=[];
+  for(let i=n-1;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);out.push(months[d.getMonth()]+"'"+(d.getFullYear()%100).toString().padStart(2,'0'));}
+  return out;
+}
+
+function makeChart(id, data, color, labels, yLabel='', refLine=null) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  const lbl = labels || mLabels(data.length);
+
+  const datasets = [{
+    label: yLabel || id,
+    data: data,
+    borderColor: color,
+    backgroundColor: color + '15',
+    borderWidth: 1.8,
+    pointRadius: 0,
+    pointHoverRadius: 4,
+    fill: true,
+    tension: 0.35
+  }];
+
+  if (refLine !== null) {
+    datasets.push({
+      label: 'Reference',
+      data: new Array(data.length).fill(refLine),
+      borderColor: '#94a3b8',
+      borderWidth: 1,
+      borderDash: [4,3],
+      pointRadius: 0,
+      fill: false,
+      tension: 0
+    });
+  }
+
+  const chart = new Chart(ctx.getContext('2d'), {
+    type: 'line',
+    data: { labels: lbl, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          displayColors: false,
+          callbacks: {
+            title: items => items[0].label,
+            label: item => item.datasetIndex === 1 ? null : (yLabel || '') + ' ' + Number(item.raw).toLocaleString(undefined,{maximumFractionDigits:2})
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#f3f4f6', drawTicks: false },
+          ticks: {
+            font: {family:'Space Mono',size:8},
+            color: '#9ca3af',
+            maxTicksLimit: 6,
+            maxRotation: 0
+          }
+        },
+        y: {
+          grid: { color: '#f3f4f6', drawTicks: false },
+          ticks: {
+            font: {family:'Space Mono',size:8},
+            color: '#9ca3af',
+            maxTicksLimit: 4,
+            callback: v => {
+              if (Math.abs(v) >= 1000) return (v/1000).toFixed(1)+'K';
+              return Number(v).toFixed(Math.abs(v) < 1 ? 2 : 1);
+            }
+          }
+        }
+      }
+    }
+  });
+  chartRefs[id] = chart;
+  return chart;
+}
+
+function updateSparkline(key, data, dates) {
+  const idMap = {
+    m2:'m2Chart',nlm:'nlmChart',rrp:'rrpChart',tga:'tgaChart',
+    ry:'realYieldChart',walcl:'walclChart',dxy:'dxyChart',qqq:'qqqChart'
+  };
+  const id = idMap[key];
+  if (!id || !chartRefs[id]) return;
+  const ch = chartRefs[id];
+  ch.data.labels = dates || mLabels(data.length);
+  ch.data.datasets[0].data = data;
+  ch.update('none');
+}
+
+/* init all charts */
+function initCharts() {
+  const lbl12 = mLabels(12);
+  const lbl8  = mLabels(8);
+
+  // Master BTC
+  makeChart('btcMaster',
+    [126,118,108,98,90,78,60,64,68,72,74.2,76.5], null,
+    ["Oct'25","Nov'25","Dec'25","Jan'26","Feb'26 early","Feb'26","Feb low","Mar early","Mar","Mar late","Apr 15","Now"],
+    'BTC $K'
+  );
+  // Override master with special
+  if (chartRefs['btcMaster']) {
+    const ch = chartRefs['btcMaster'];
+    ch.data.datasets[0].borderColor = '#f7931a';
+    ch.data.datasets[0].backgroundColor = 'rgba(247,147,26,0.08)';
+    // add support/resistance reference lines
+    ch.data.datasets.push({
+      label: 'Support $74K', data: new Array(12).fill(74),
+      borderColor: '#10b981', borderWidth: 1.2, borderDash:[4,3], pointRadius:0, fill:false
+    },{
+      label: 'Resistance $78.8K', data: new Array(12).fill(78.8),
+      borderColor: '#ef4444', borderWidth: 1.2, borderDash:[4,3], pointRadius:0, fill:false
+    });
+    ch.options.scales.y.min = 50; ch.options.scales.y.max = 135;
+    ch.options.scales.y.ticks.callback = v => '$'+v+'K';
+    ch.options.plugins.legend = {display:true, labels:{boxWidth:10,font:{size:10,family:'Space Mono'},color:'#6b7280'}};
+    ch.update('none');
+  }
+
+  // L1 sparklines removed — the Layer 1 history table is the visual reference.
+
+  // L2 charts
+  makeChart('dxyChart',   [103,102.5,102,101.5,101,100.5,100,99.5,99,98.8,98.5,98.31], '#10b981', lbl12, '');
+  makeChart('spreadChart',[-0.2,-0.1,0.0,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.44], '#f59e0b', lbl12, '%', 0);
+  makeChart('qqqChart',   [2.2,2.4,2.6,2.7,2.75,2.8,2.85,2.9,2.95,3.0,3.06,3.12], '#10b981', lbl12, '');
+
+  // L3 charts
+  makeChart('mvrvChart',  [0.3,0.5,0.7,0.8,0.85,0.9,0.95,1.0,1.1,1.15,1.18,1.2], '#f59e0b', lbl12, 'Z', 3);
+  makeChart('domChart',   [52,53,54,55,55.5,56,56.5,57,57.2,57.5,57.7,57.8], '#10b981', lbl12, '%');
+  makeChart('ssrChart',   [13,12.5,12,11.5,11,10.5,10,9.5,9.2,9.0,8.7,8.5], '#10b981', lbl12, '');
+  makeChart('fundingChart',[-0.005,-0.006,-0.008,-0.01,-0.012,-0.015,-0.014,-0.012,-0.011,-0.01,-0.01,-0.01], '#10b981', lbl12, '%', 0);
+}
+
+/* ============================================================
+   TRADINGVIEW QUICK LAUNCH CARDS
+   ============================================================ */
+let tvCharts = [
+  {name:'BTC / USD',    sym:'BITSTAMP:BTCUSD',         val:'—',   delta:'', col:'#374151', desc:'Daily · RSI 63.9 · Support $74,195 · Res $78,785', interval:'—'},
+  {name:'DXY Dollar',   sym:'TVC:DXY',                  val:'—',     delta:'', col:'#374151', desc:'Weekly · 3rd consecutive weekly decline · Bullish BTC', interval:'—'},
+  {name:'10Y Yield',    sym:'TVC:US10Y',                val:'—',     delta:'', col:'#374151', desc:'Weekly · Down from 4.49% spike · FOMC Apr 29 hold expected', interval:'—'},
+  {name:'BTC Dominance',sym:'CRYPTOCAP:BTC.D',          val:'—',     delta:'', col:'#374151', desc:'Weekly · Bitcoin Season · Alt Index 34/100', interval:'—'},
+  {name:'Fed (WALCL)',  sym:'FRED:WALCL',               val:'—',    delta:'', col:'#374151', desc:'Monthly · Down from $9T · Structural liquidity drain', interval:'—'},
+  {name:'Yield Spread', sym:'TVC:US10Y-TVC:US02Y',      val:'—',    delta:'', col:'#374151', desc:'Weekly · Positive curve · Improving policy expectations', interval:'—'},
+  {name:'BTC / QQQ',   sym:'BITSTAMP:BTCUSD/NASDAQ:QQQ',val:'—',     delta:'', col:'#374151', desc:'Weekly · BTC outperforming Nasdaq · Early bull signal', interval:'—'},
+  {name:'M2 Money',    sym:'FRED:M2SL',                 val:'—',   delta:'', col:'#374151', desc:'Monthly · Recovering post-2023 contraction · BTC lags ~10wk', interval:'—'},
+  {name:'Real Yield',  sym:'FRED:DFII10',               val:'—',    delta:'', col:'#374151', desc:'Daily · TIPS 10Y · Above 2% = headwind for BTC', interval:'—'},
+];
+
+function syncTradingViewCards() {
+  const update = (name, patch) => { const card = tvCharts.find(c => c.name === name); if (card) Object.assign(card, patch); };
+  const na = { val:'—', delta:'No data', col:'#374151' };
+  update('BTC / USD', has(state.btc) ? { val: formatUSD(state.btc), delta: has(state.btcChange) ? `${state.btcChange >= 0 ? '+' : ''}${state.btcChange.toFixed(2)}%` : '', col: (state.btcChange || 0) >= 0 ? '#047857' : '#b91c1c', desc:'Daily · Live BTC/USDT spot and 24-hour move from Binance' } : na);
+  update('DXY Dollar', has(state.dxy) ? { val: state.dxy.toFixed(2), delta: has(state.dxyChange) ? `${state.dxyChange >= 0 ? '+' : ''}${state.dxyChange.toFixed(2)}%` : '', col: (state.dxyChange || 0) <= 0 ? '#047857' : '#b91c1c', desc:'Daily · Latest available close from Yahoo Finance' } : na);
+  update('10Y Yield', has(state.tenY) ? { val: state.tenY.toFixed(2) + '%', delta:'Latest', col:'#b45309', desc:'Daily · Latest available CBOE 10-year Treasury yield from Yahoo Finance' } : na);
+  update('BTC Dominance', has(state.btcd) ? { val: state.btcd.toFixed(2) + '%', delta: manualKeys.has('btcd') ? 'Manual' : 'Live', col:'#047857', desc:'Share of total crypto market cap from CoinGecko' } : na);
+  const cur = effectiveCurrentRow(), wc = cur && cur.cells.walcl, m2 = cur && cur.cells.m2Level, ryc = cur && cur.cells.ry;
+  update('Fed (WALCL)', has(state.walcl) ? { val: '$' + state.walcl.toFixed(2) + 'T', delta: wc && wc.manual ? 'Manual' : wc && wc.date ? 'Wed ' + wc.date : '', col:'#374151', desc:'FRED WALCL · weekly Wednesday level (H.4.1)' } : na);
+  update('Yield Spread', has(state.ys) ? { val: (state.ys >= 0 ? '+' : '') + state.ys.toFixed(2) + '%', delta:'10Y−2Y', col:'#b45309', desc: state.ysDate ? `FRED DGS10 − DGS2 on ${state.ysDate}` : 'Manual value' } : na);
+  update('BTC / QQQ', has(state.qqq) ? { val: state.qqq.toFixed(2), delta:'Ratio', col:'#374151', desc:`BTC spot divided by QQQ latest close${has(state.qqqPrice) ? ` ($${state.qqqPrice.toFixed(2)})` : ''}` } : na);
+  update('M2 Money', has(state.m2Level) ? { val: '$' + state.m2Level.toFixed(2) + 'T', delta: state.m2 > 0 ? 'Rising' : state.m2 < 0 ? 'Falling' : state.m2 === 0 ? 'Flat' : '', col:'#374151', desc:`FRED M2SL (US M2) · ${m2 && m2.date ? L1Core.monthLabel(m2.date.slice(0, 7)) : ''} observation` } : na);
+  update('Real Yield', has(state.ry) ? { val: state.ry.toFixed(2) + '%', delta: ryc && ryc.manual ? 'Manual' : ryc && ryc.date ? ryc.date : '', col:'#b45309', desc:'FRED DFII10 · 10-year TIPS yield' } : na);
+  buildTVCards();
+}
+
+function buildTVCards() {
+  const container = document.getElementById('tvCards');
+  if (!container) return;
+  container.innerHTML = tvCharts.map(c => {
+    const url = `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(c.sym)}&interval=${c.interval}`;
+    return `<a class="tv-card" href="${url}" target="_blank" rel="noopener">
+      <div class="tv-card-top">
+        <div>
+          <div class="tv-card-name">${c.name}</div>
+          <div class="tv-card-sym">${c.sym}</div>
+        </div>
+        <div class="tv-card-arrow">↗</div>
+      </div>
+      <div class="tv-card-val" style="color:${c.col}">${c.val} <span style="font-size:10px">${c.delta}</span></div>
+      <div class="tv-card-desc">${c.desc}</div>
+    </a>`;
+  }).join('');
+}
+
+/* ============================================================
+   REFRESH
+   Manual "Refresh All" forces every source. On load and every 15 minutes,
+   FRED series are fetched only when due (TTL by publication frequency, or a
+   newer release is expected); valid cache is shown meanwhile.
+   ============================================================ */
+let refreshing = false;
+async function fullRefresh(force = true) {
+  if (refreshing) return;
+  refreshing = true;
+  const btn = document.getElementById('refreshBtn');
+  const icon = document.getElementById('rIcon');
+  btn.disabled = true;
+  icon.style.cssText = 'display:inline-block;animation:spin .7s linear infinite';
+  document.getElementById('dataStatus').textContent = 'Refreshing all sources…';
+  Object.keys(sourceState).forEach(key => sourceState[key] = false);
+  const failures = [];
+  try {
+    const primary = await Promise.allSettled([loadBinanceData(), loadCoinGeckoData(), loadFREDData(force)]);
+    ['Binance', 'CoinGecko', 'FRED'].forEach((name, i) => {
+      if (primary[i].status === 'rejected') failures.push(`${name}: ${primary[i].reason?.message || 'unavailable'}`);
+    });
+    try { await loadYahooData(); }
+    catch (error) { failures.push(`Yahoo: ${error.message || 'unavailable'}`); }
+  } finally {
+    try { refreshDerivedData(); } catch (e) { console.error(e); }
+    const live = Object.values(sourceState).filter(v => v === true || v === 'live').length;
+    const fredCached = sourceState.FRED === 'cached';
+    const status = document.getElementById('dataStatus');
+    status.textContent = failures.length ? `PARTIAL LIVE · ${live}/4 SOURCES`
+      : fredCached ? `LIVE ${live}/4 · FRED CACHED (NO NEW RELEASE DUE)` : 'LIVE · 4/4 SOURCES';
+    status.title = (failures.length ? `Last valid values retained. ${failures.join(' | ')}` : 'All sources refreshed') + ' · MVRV is manual';
+    const now = new Date();
+    const missing = Object.entries(sourceState).filter(([, ok]) => !ok).map(([name]) => name);
+    document.getElementById('lastUpdated').textContent =
+      'Updated: ' + now.toLocaleDateString('en-IN', { month:'short', day:'2-digit', year:'numeric' }) +
+      ' · IST ' + now.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false }) +
+      (missing.length ? ` · ${missing.join('/')} unavailable` : '') + (fredCached ? ' · FRED cached' : '') + ' · MVRV manual';
+    btn.disabled = false;
+    icon.style.cssText = '';
+    refreshing = false;
+  }
+}
+async function refreshDueFred() {
+  if (refreshing) return;
+  try { await loadFREDData(false); } catch (e) { /* status shown in Layer 1 */ }
+  refreshDerivedData();
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('dashboardDate').textContent =
+    new Date().toLocaleDateString('en-IN', { month:'long', day:'2-digit', year:'numeric' }).toUpperCase();
+  initCharts();
+  initL1Table();          // shows validated cached FRED data immediately (labelled Cached/Stale)
+  buildTVCards();
+  updateScoreUI();
+  rebuildBadges();
+  syncTradingViewCards();
+  setTimeout(() => fullRefresh(false), 600);           // on load: market sources + FRED series that are due
+  setInterval(refreshDueFred, 15 * 60 * 1000);         // FRED due-check every 15 minutes
+});
+</script>
+</body>
+</html>

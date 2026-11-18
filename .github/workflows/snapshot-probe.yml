@@ -1,0 +1,38 @@
+# Phase 1 probe: does every data source answer from GitHub's servers?
+# Runs the snapshot and prints the manifest. No deploy, no commits.
+name: snapshot-probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Snapshot all allow-listed sources
+        run: python serve.py --snapshot snap || echo "snapshot exited with $?"
+
+      - name: Print manifest
+        if: always()
+        run: |
+          cat snap/manifest.json
+          # one annotation per source (readable from the run page and the public checks API)
+          python -c "import json; m=json.load(open('snap/manifest.json')); [print(f\"::{'notice' if e['ok'] else 'warning'} title=snapshot {k}::{e['status']} {(e.get('error_kind') or '')} {(e.get('http_status') or '')} {(e.get('error') or '')}\") for k, e in m['sources'].items()]"
+          {
+            echo "### Snapshot probe ($(date -u +%FT%TZ), runner: ${RUNNER_OS})"
+            echo '| source | status | error |'
+            echo '|---|---|---|'
+            python -c "import json; m=json.load(open('snap/manifest.json')); [print(f\"| {k} | {e['status']} | {(e.get('error_kind') or '') + ' ' + str(e.get('http_status') or '')} |\") for k, e in m['sources'].items()]"
+          } >> "$GITHUB_STEP_SUMMARY"
