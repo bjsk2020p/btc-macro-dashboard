@@ -231,6 +231,7 @@ def get_source(key, url, memo_s, validate):
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     server_version = "BTCMacroDashboard/2"
+    extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, ".webmanifest": "application/manifest+json"}
 
     def do_GET(self):
         path, _, query = self.path.partition("?")

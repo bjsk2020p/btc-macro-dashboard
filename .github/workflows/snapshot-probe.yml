@@ -15,9 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -28,8 +28,8 @@ jobs:
         if: always()
         run: |
           cat snap/manifest.json
-          # one annotation per source (readable from the run page and the public checks API)
-          python -c "import json; m=json.load(open('snap/manifest.json')); [print(f\"::{'notice' if e['ok'] else 'warning'} title=snapshot {k}::{e['status']} {(e.get('error_kind') or '')} {(e.get('http_status') or '')} {(e.get('error') or '')}\") for k, e in m['sources'].items()]"
+          # one summary annotation covering all sources (GitHub keeps only 10 notices per step)
+          python -c "import json; m=json.load(open('snap/manifest.json')); s=m['sources']; print('::notice title=snapshot summary::' + ' | '.join(f\"{k}={e['status']}{('/' + str(e.get('error_kind')) + ' ' + str(e.get('http_status') or '')) if not e['ok'] else ''}\" for k, e in s.items()))"
           {
             echo "### Snapshot probe ($(date -u +%FT%TZ), runner: ${RUNNER_OS})"
             echo '| source | status | error |'
