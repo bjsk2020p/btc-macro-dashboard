@@ -28,8 +28,9 @@ jobs:
         if: always()
         run: |
           cat snap/manifest.json
-          # one summary annotation covering all sources (GitHub keeps only 10 notices per step)
-          python -c "import json; m=json.load(open('snap/manifest.json')); s=m['sources']; print('::notice title=snapshot summary::' + ' | '.join(f\"{k}={e['status']}{('/' + str(e.get('error_kind')) + ' ' + str(e.get('http_status') or '')) if not e['ok'] else ''}\" for k, e in s.items()))"
+          # two short annotations (GitHub keeps only 10 notices per step): fresh sources, failed sources
+          python -c "import json; s=json.load(open('snap/manifest.json'))['sources']; print('::notice title=snapshot fresh::' + ', '.join(k for k, e in s.items() if e['ok']))"
+          python -c "import json; s=json.load(open('snap/manifest.json'))['sources']; bad=[k + ' ' + e['status'] + ' ' + str(e.get('error_kind')) + ' ' + str(e.get('http_status') or '') for k, e in s.items() if not e['ok']]; print('::warning title=snapshot failed::' + (', '.join(bad) or 'none'))"
           {
             echo "### Snapshot probe ($(date -u +%FT%TZ), runner: ${RUNNER_OS})"
             echo '| source | status | error |'
