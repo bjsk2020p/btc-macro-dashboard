@@ -1,0 +1,68 @@
+# Hosted dashboard: snapshot the data and deploy to GitHub Pages.
+# Every 30 minutes, on manual trigger, and on pushes to main (so code and data/manual.json
+# changes appear without waiting). Snapshot data is deployed, never committed.
+name: deploy-pages
+
+on:
+  schedule:
+    - cron: "7,37 * * * *"        # every 30 min, off the top of the hour (GitHub delays :00 jobs most)
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Unit tests (deploy only if they pass)
+        run: |
+          node --test tests/l1_core.test.mjs tests/sources_core.test.mjs
+          python -m unittest tests/test_serve.py
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Assemble site and snapshot data
+        run: bash scripts/build_site.sh _site "${{ steps.pages.outputs.base_url }}/data"
+
+      - name: Report sources
+        if: always()
+        run: |
+          python -c "import json; s=json.load(open('_site/data/manifest.json'))['sources']; print('::notice title=snapshot fresh::' + ', '.join(k for k, e in s.items() if e['ok']))"
+          python -c "import json; s=json.load(open('_site/data/manifest.json'))['sources']; bad=[k + ' ' + e['status'] + ' ' + str(e.get('error_kind')) + ' ' + str(e.get('http_status') or '') for k, e in s.items() if not e['ok']]; print('::warning title=snapshot failed::' + (', '.join(bad) or 'none'))"
+          {
+            echo "### Snapshot $(date -u +%FT%TZ)"
+            echo '| source | status | retrieved | error |'
+            echo '|---|---|---|---|'
+            python -c "import json; m=json.load(open('_site/data/manifest.json')); [print(f\"| {k} | {e['status']} | {e.get('retrieved_at') or '—'} | {(e.get('error_kind') or '') + ' ' + str(e.get('http_status') or '')} |\") for k, e in m['sources'].items()]"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

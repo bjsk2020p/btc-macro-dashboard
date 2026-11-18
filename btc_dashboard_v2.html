@@ -1671,11 +1671,27 @@ async function fetchSourceRaw(key) {
     return { json: f.body, retrievedAt: f.retrievedAt, via:'snapshot', lastGood: f.lastGood, upstreamError: f.upstreamError };
   }
   if (!S.direct) throw new Error(`${S.group} sends no CORS headers; ${launcherHint()}`);
+  try {
+    return await fetchDirect(key, S);
+  } catch (e) {
+    // Hosted page: if the direct request fails (e.g. CoinGecko's keyless rate limit, whose 429 has
+    // no CORS header), use the published snapshot copy of the same endpoint, labelled as a snapshot.
+    if (src.mode !== 'snapshot') throw e;
+    let f;
+    try { f = await fetchSnapshotFile(key, `data/src/${key}.json`, 'json'); }
+    catch (e2) { e.message = `${e.message}; snapshot fallback: ${e2.message}`; throw e; }
+    return { json: f.body, retrievedAt: f.retrievedAt, via:'snapshot', lastGood: f.lastGood, upstreamError: f.upstreamError, directError: e.message };
+  }
+}
+async function fetchDirect(key, S) {
   let r;
   try { r = await fetch(S.direct, { cache:'no-store', signal: AbortSignal.timeout(15000) }); }
   catch (e) { throw new Error(e.name === 'TimeoutError' ? 'request timed out' : 'network error: offline, blocked, or rejected without CORS headers (e.g. a rate limit); the browser cannot tell which'); }
   if (!r.ok) { const err = new Error(`HTTP ${r.status}${r.status === 429 ? ' (rate limited)' : ''}`); err.retryAfter = Number(r.headers.get('Retry-After')) || null; throw err; }
-  return { json: await r.json(), retrievedAt: new Date().toISOString(), via:'direct' };
+  let json;
+  try { json = await r.json(); } catch (e) { throw new Error('malformed response (not valid JSON)'); }
+  SourcesCore.parse(key, json);           // invalid content counts as a failed request (enables the snapshot fallback)
+  return { json, retrievedAt: new Date().toISOString(), via:'direct' };
 }
 
 // One request per source at a time; failures back off (Retry-After when given, else 1, 2, 4… min, max 30).
@@ -1704,7 +1720,7 @@ async function refreshSource(key, force = false) {
       } else {
         const isNew = !prev || !prev.parsed || prev.parsed.obsTime !== parsed.obsTime;
         src.entries[key] = { parsed, retrievedAt: raw.retrievedAt, checkedAt: new Date(started).toISOString(), newObsAt: isNew ? raw.retrievedAt : prev.newObsAt,
-                             via: raw.via, fromCache: false, error: null, attemptedAt: started, failCount: 0, nextAllowedAt: 0 };
+                             via: raw.via, directError: raw.directError || null, fromCache: false, error: null, attemptedAt: started, failCount: 0, nextAllowedAt: 0 };
       }
     } catch (e) {
       fail(e instanceof SyntaxError ? 'malformed response (not valid JSON)' : e.message, e.retryAfter);
@@ -1759,11 +1775,13 @@ function metaFor(keys, extra = '') {
   const label = worst === 'snapshot' || (worst === 'stale' && snap && SourcesCore.snapshotStale(snap.e, now))
     ? `${worst === 'stale' ? 'Stale snapshot' : 'Snapshot'} ${fmtStamp(Date.parse(snap.e.retrievedAt))}`
     : worst === 'latest' && first.S.kind === 'quote' ? 'Latest close' : SRC_STATUS_TXT[worst];
-  const text = `${parts.map(p => p.S.group + ' ' + p.S.instrument).join(' + ')} · obs ${obs} · ${label}${extra}`;
+  const directFailed = parts.some(p => p.e && p.e.directError);
+  const text = `${parts.map(p => p.S.group + ' ' + p.S.instrument).join(' + ')} · obs ${obs} · ${label}${directFailed ? ' · direct failed' : ''}${extra}`;
   const title = parts.map(({ k, S, e, st }) =>
     `${S.label} [${S.instrument}] — ${SRC_STATUS_TXT[st]}\n  Source: ${S.link}\n  Observation: ${e && e.parsed ? new Date(e.parsed.obsTime).toISOString() : '—'}` +
     `\n  Last successful retrieval: ${e && e.retrievedAt ? e.retrievedAt : '—'}${e && e.via ? ' via ' + e.via : ''}` +
     `${e && e.checkedAt ? '\n  Checked this session: ' + e.checkedAt + (e.newObsAt === e.retrievedAt ? ' (new observation)' : ' (no newer observation)') : ''}` +
+    `${e && e.directError ? '\n  Direct request failed (' + e.directError + '); showing the published snapshot' : ''}` +
     `${e && e.error ? '\n  Last refresh failed: ' + e.error : ''}`).join('\n');
   return { text, title, state: worst };
 }
@@ -2469,7 +2487,7 @@ function renderStatusPill() {
                                : ok === 4 ? 'LIVE · ALL 4 SOURCES' : loading ? 'LOADING SOURCES' : `PARTIAL · ${ok}/4 SOURCES CURRENT`) + ' · ' +
     Object.entries(groups).map(([g, s]) => `${g} ${mark[s]}`).join(' ');
   document.getElementById('livePill').classList.toggle('partial', ok !== 4);
-  const errs = [...SRC_KEYS.map(k => src.entries[k] && src.entries[k].error ? `${SourcesCore.SRC[k].group} ${SourcesCore.SRC[k].instrument}: ${src.entries[k].error}` : null),
+  const errs = [...SRC_KEYS.map(k => src.entries[k] && (src.entries[k].error || src.entries[k].directError) ? `${SourcesCore.SRC[k].group} ${SourcesCore.SRC[k].instrument}: ${src.entries[k].error || 'direct request failed, showing snapshot: ' + src.entries[k].directError}` : null),
                 ...FRED_IDS.map(id => fred.entries[id] && fred.entries[id].error ? `FRED ${id}: ${fred.entries[id].error}` : null)].filter(Boolean);
   pill.title = (snapMode ? `Snapshot mode (no local server): FRED and Yahoo come from files published every ${SourcesCore.SNAPSHOT_INTERVAL_MS / 60e3} min (stale after twice that); Binance and CoinGecko are read directly.\n` : '') +
     '✓ current · ◐ partly cached/stale · ✕ unavailable. FRED values are latest published observations, not intraday.' +
