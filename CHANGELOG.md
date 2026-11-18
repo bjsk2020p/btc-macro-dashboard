@@ -34,6 +34,39 @@ Earlier history predates this changelog and is not reconstructed here.
   The parameter help states the dashboard's actual thresholds and equal weights (TGA included,
   open interest marked as not tracked). The "M2 leads BTC 8–12 weeks" idea is described as an
   unverified hypothesis. All 22 reference links open in a new tab.
+- Hosted mode for phones (PC off), published at https://bjsk2020p.github.io/btc-macro-dashboard/:
+  - `python serve.py --snapshot DIR [--fallback-url URL]` writes every allow-listed source to
+    `fred/<ID>.csv`, `src/<key>.json` and `manifest.json`. It uses the same fetch and validators
+    plus a structural check. A failed source keeps its previous valid file (or, in CI, the
+    validated published copy) with its original time; nothing is overwritten with bad data.
+  - The page detects the local relay via `/api/health`. Without it, it reads FRED and Yahoo from
+    `data/`: FRED is labelled "Latest published", Yahoo "Snapshot <time>", never "Live", and a
+    snapshot older than 2 × 30 min is Stale. Binance and CoinGecko are read directly. CoinGecko
+    falls back to its snapshot when the direct request fails, labelled "direct failed".
+  - MVRV is shared through `data/manual.json` (value + date, same on every device). Set is now a
+    temporary override in one browser.
+  - Phone layout at ≤ 480 px: single column, 44 × 44 px tap targets, 16 px inputs, shorter
+    charts, no sideways scroll at 360 px. The desktop renders byte-identical at 1280, 1024, 768
+    and 481 px.
+  - `app.webmanifest` and `icons/` for Add to Home Screen; no service worker.
+  - `.github/workflows/pages.yml` runs every 30 min, on manual trigger and on push to `main`. It
+    runs the tests, then `scripts/build_site.sh` (explicit file list plus a guard against
+    publishing `.runtime`, `.remember`, `tests`, `archive`, `Releases`, `serve.py`), then the
+    snapshot, then the official Pages deploy. Snapshot data is never committed.
+  - Tests: 8 snapshot tests in `tests/test_serve.py`; snapshot status rules in
+    `tests/sources_core.test.mjs`.
+  - Verified from GitHub's servers: FRED, Yahoo and CoinGecko answer. Binance returns HTTP 451,
+    so the phone reads it directly; CORS from `github.io` is verified.
+
+### Changed
+
+- Git may use a GitHub remote and push, for the hosting work only (authorised 2026-11-17;
+  recorded in CLAUDE.md). The repository is public on `main`.
+- FRED and Yahoo may also be read from snapshot files produced by `serve.py --snapshot`. There are
+  still no third-party CORS proxies or mirrors.
+- `serve.py` serves `.webmanifest` as `application/manifest+json`.
+- Two inline styles (TradingView grid, master chart height) became classes with identical
+  desktop values, so the phone layout can override them.
 
 ### Fixed
 

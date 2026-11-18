@@ -1,11 +1,14 @@
 # Data sources and methodology
 
 How every automatically refreshed number on the dashboard is produced. Endpoints, definitions,
-units and live responses were verified on 2026-11-15.
+units and live responses were verified on 2026-11-15. The hosted (phone) mode and its sources
+from GitHub's servers were verified on 2026-11-18.
 
 - Code: `serve.py` (local server, launcher, allow-listed relay); in `btc_dashboard_v2.html`, the
   pure blocks `<script id="l1-core">` (FRED/Layer 1) and `<script id="sources-core">`
   (market feeds), plus the page script.
+- Hosting: `python serve.py --snapshot DIR`, `scripts/build_site.sh`, and
+  `.github/workflows/pages.yml` (see **Hosted mode** below).
 - Tests (name the files; the folder form fails on Windows):
   `node --test tests/l1_core.test.mjs tests/sources_core.test.mjs` and
   `python -m unittest tests/test_serve.py`.
@@ -35,10 +38,97 @@ Python itself.
 Browser-saved data is stored per port. If 8765 is busy and another port is used, the browser
 cache starts empty, but the server's last-good cache (below) still fills it.
 
+## Hosted mode (phone, PC off)
+
+The same `btc_dashboard_v2.html` is published at
+**https://bjsk2020p.github.io/btc-macro-dashboard/** (the root URL forwards to the dashboard).
+
+**Mode detection.** On load the page asks `/api/health`:
+
+- **Relay mode** (the local `serve.py` answers): everything works as described in the rest of this
+  document. The desktop is unchanged.
+- **Snapshot mode** (no relay, but `data/manifest.json` exists): FRED and Yahoo, which send no CORS
+  headers, are read from snapshot files. Binance and CoinGecko are read directly from the phone.
+- **Neither** (e.g. a plain static server with no `data/`): FRED and Yahoo show Unavailable with
+  the reason.
+
+**Where each source comes from in snapshot mode**
+
+| Source | Read from | Label | Fallback |
+|---|---|---|---|
+| FRED (7 series) | `data/fred/<ID>.csv` | Latest published · snapshot <time> | — |
+| Yahoo (DXY, QQQ, ^TNX) | `data/src/yahoo-*.json` | Snapshot <time> (never Live) | — |
+| CoinGecko (3 endpoints) | direct `api.coingecko.com` | Live / Latest | `data/src/coingecko-*.json` if the direct request fails or is invalid: "Snapshot <time> · direct failed" |
+| Binance (4 endpoints) | direct `api.binance.com`, `fapi.binance.com` | Live / Latest | none published: Binance answers GitHub's US servers with HTTP 451 |
+| MVRV | `data/manual.json` (value + date) | Manual · <date> | Set = override in that browser only |
+
+- A snapshot's time is the manifest's `retrieved_at` (when `serve.py` fetched it), never the
+  page-load time.
+- If a snapshot run failed and kept an older file (`kept-previous` or `published-fallback`), the
+  card shows *Cached* with that error. If there is no copy at all (`missing`), it shows
+  *Unavailable* with the reason.
+- **Staleness rule:** snapshots are published every 30 min (`SNAPSHOT_INTERVAL_MS`). A snapshot
+  older than **2 × 30 = 60 min** is *Stale* ("Stale snapshot <time>"). FRED's publication
+  schedule and each source's own observation limit still apply on top.
+- The header reads **SNAPSHOT MODE**, never LIVE. The page re-reads the manifest at most once a
+  minute, Yahoo files every 5 min, and FRED files every 10 min.
+
+**Snapshot files** (`python serve.py --snapshot DIR [--fallback-url URL]`)
+
+- They use the same allow-listed URLs, `fetch_upstream` (timeouts, bounded retries, Retry-After)
+  and validators as the relay. A structural check is added so a well-formed but empty or wrong
+  response (e.g. another symbol, or no observations) can never replace a good file.
+- Output: `DIR/fred/<ID>.csv`, `DIR/src/<key>.json` and `DIR/manifest.json`. Per source the
+  manifest records `ok`, `status`, `retrieved_at`, `attempted_at`, `error_kind`, `error`,
+  `http_status`, `last_modified`, `bytes` and `sha256`.
+- Status values:
+  - `fresh`: fetched in this run.
+  - `kept-previous`: this run failed, so the previous valid file was kept with its original
+    time.
+  - `published-fallback`: in CI no previous file exists, so the currently published copy was
+    downloaded, validated the same way, and kept with its published time.
+  - `missing`: no valid copy exists.
+- Requests to the same host are spaced 1.5 s apart. FRED history covers 730 days.
+
+**Publishing** (`.github/workflows/pages.yml`)
+
+- Runs every 30 min (cron `7,37 * * * *`), on manual trigger, and on every push to `main` (so
+  `data/manual.json` and code changes appear within about a minute).
+- Each run: unit tests (it deploys only if they pass) → `scripts/build_site.sh` (explicit file
+  list: dashboard, `app.webmanifest`, `vendor/`, `icons/`, `data/manual.json`, `index.html`) →
+  snapshot into `data/` with the published copy as fallback → official Pages actions
+  (`configure-pages`, `upload-pages-artifact`, `deploy-pages`).
+- A guard fails the build if `.runtime/`, `.remember/`, `tests/`, `archive/`, `Releases/`,
+  `.git` or `serve.py` would be published. Snapshot data is deployed, never committed (`data/*`
+  is ignored except `data/manual.json`).
+- Each run reports a "snapshot fresh" notice and a "snapshot failed" warning, plus a per-source
+  table in the run summary.
+
+**Results from GitHub's servers (2026-11-18):** FRED 7/7, Yahoo 3/3 and CoinGecko 3/3 answered.
+All four Binance endpoints returned HTTP 451. From an `https://bjsk2020p.github.io` page, every
+Binance endpoint passed CORS. CoinGecko passes CORS on normal responses, but its 429 (rate
+limit) has no CORS header, so the browser only sees "network error"; that is why the snapshot
+fallback exists.
+
+**Phone layout and home screen:** at ≤ 480 px the layout is a single column, tap targets are at
+least 44 × 44 px, inputs use 16 px text (no iOS zoom), charts are shorter, and there is no
+sideways scroll at 360 px. `app.webmanifest` and `icons/` (192, 512, maskable 512, Apple 180)
+allow "Add to Home Screen". There is **no service worker**, so data is never cached offline by
+the app.
+
+**Operating limits**
+
+- GitHub may start scheduled runs late under load. Snapshots older than 60 min then show as
+  Stale.
+- GitHub disables scheduled workflows in public repositories after 60 days without a commit.
+  Re-enable it under Actions, or push any change (e.g. `data/manual.json`).
+- CoinGecko's free API throttles quickly. When it does, the hosted page uses the latest snapshot
+  (≤ 30 min old) and says so.
+
 ## Source inventory
 
 No source needs credentials. FRED and Yahoo send no CORS headers, so the browser reaches them only
-through the relay. Binance and CoinGecko also go through the relay when it is running, which
+through the relay, or on the hosted page through snapshot files (see Hosted mode). Binance and CoinGecko also go through the relay when it is running, which
 gives Retry-After handling, cooldowns and the last-good cache; under `file://` they are fetched
 directly.
 
@@ -55,7 +145,7 @@ directly.
 | QQQ (BTC/QQQ, L2) | Invesco QQQ Trust, USD | Yahoo Finance | `…/chart/QQQ…` (`yahoo-qqq`) | USD | market hours | 5 min |
 | 10Y yield (TradingView card) | CBOE `^TNX`, percent | Yahoo Finance | `…/chart/%5ETNX…` (`yahoo-tnx`) | % | market hours | 5 min |
 | US M2, Fed assets, TGA, RRP, real yield, 10Y/2Y (L1, L2 spread) | M2SL, WALCL, WDTGAL, RRPONTSYD, DFII10, DGS10, DGS2 | FRED (see the Layer 1 table below) | `fredgraph.csv?id=…&cosd=…` (`/api/fred/<ID>`) | see below | see below | on every opening, then by schedule |
-| MVRV Z (L3) | — | **Manual**: no verified free, unauthenticated automated source | — | — | — | never automatic |
+| MVRV Z (L3) | value + date in `data/manual.json` (same on every device) | **Manual**: no verified free, unauthenticated automated source | — | — | — | when the file changes; Set = override in one browser |
 | Altseason index (alerts) | — | not connected ("No source") | — | — | — | — |
 
 Derived values:
@@ -88,6 +178,8 @@ used.
   the upstream fails, the last valid body is returned with `X-Relay-Cache: last-good`, its
   original `X-Retrieved-At`, and `X-Upstream-Error`. The page shows it as *Cached* with the error,
   never as a new retrieval.
+- `--snapshot DIR` writes the same allow-listed sources to static files for hosting (see Hosted
+  mode). `.webmanifest` is served as `application/manifest+json`.
 - `/api/health` is the only endpoint readable cross-origin, for the `file://` notice.
   `.runtime`, `.git` and `.remember` are not served.
 
@@ -109,9 +201,10 @@ used.
 - **States:** Loading · Live (market data retrieved this session, < 15 min old) · Latest / Latest
   close (current for the source, e.g. a weekend close) · Latest published (FRED) · Cached (saved
   copy or failed refresh) · Stale (older than the source's limit, e.g. Binance spot > 15 min,
-  Yahoo > 4 days) · Not yet published (FRED period not due) · Unavailable · Manual.
+  Yahoo > 4 days) · Not yet published (FRED period not due) · Unavailable · Manual · Snapshot
+  <time> (hosted mode, ≤ 60 min old, never "Live") · Stale snapshot (> 60 min).
 - The header pill says **LIVE · ALL 4 SOURCES** only when Binance, CoinGecko, Yahoo and FRED are
-  all current; otherwise **PARTIAL**, with ✓ / ◐ / ✕ per group and the errors in its tooltip. Each
+  all current in relay mode (hosted: **SNAPSHOT MODE …**); otherwise **PARTIAL**, with ✓ / ◐ / ✕ per group and the errors in its tooltip. Each
   card has a source line (provider, instrument, observation time, status); hover it for the link,
   last retrieval, check result and last error.
 - If the chart library cannot load, values still update and each chart area says so. Chart.js
